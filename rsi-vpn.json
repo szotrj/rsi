@@ -106,7 +106,7 @@
         "VPNServerInstance": {
             "Type": "AWS::EC2::Instance",
             "Properties": {
-                "SSHKeyName": { "Ref" : "KeyName"},
+                "KeyName": { "Ref" : "SSHKeyName"},
                 "ImageId": {
                     "Fn::FindInMap": [
                         "AWSRegionArch2AMI",
