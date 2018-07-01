@@ -2,7 +2,7 @@
 
 This is my GitHub for RSI
 
-## Built with atom.io
+### Built with atom.io
 
 * [atom.io](https://atom.io/) - The text editor used
 
@@ -10,10 +10,10 @@ This is my GitHub for RSI
 
 * **Rob Szot** - *Initial work* -
 
-## License
+### License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
-## Acknowledgments
+### Acknowledgments
 
 * Hat tip to anyone whose code was used
