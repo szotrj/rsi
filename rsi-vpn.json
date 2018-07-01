@@ -387,7 +387,7 @@
                                 "command": "yum install easy-rsa -y --enablerepo=epel"
                             },
                             "02_install_software_copy_easyrsa": {
-                                "command": "cp -R /usr/share/easy-rsa/2.0 /opt/easy-rsa"
+                                "command": "cp -R /usr/share/easy-rsa/3 /opt/easy-rsa"
                             }
                         }
                     },
