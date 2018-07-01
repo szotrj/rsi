@@ -1,0 +1,346 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "OpenVPN Stack",
+    "Parameters": {
+        "OpenVPNPort": {
+            "Type": "Number",
+            "Default": 1194,
+            "Description": "OpenVPN UDP port"
+        },
+        "SSHKeyName": {
+            "Type": "AWS::EC2::KeyPair::KeyName",
+            "Description": "SSH Key for the OpenVPN Instance",
+            "ConstraintDescription": "Must be the name of an existing EC2 KeyPair."
+        },
+        "ClientIPCIDR": {
+            "Type": "String",
+            "Default": "0.0.0.0/0",
+            "Description": "CIDR IP to be granted access by the SG, use 0.0.0.0/0 to accept all IPs"
+        }
+    },
+    "Mappings": {
+        "RegionMap": {
+            "us-east-1": {
+                "AMAZONLINUXAMI": "ami-8c1be5f6"
+            },
+            "us-east-2": {
+                "AMAZONLINUXAMI": "ami-c5062ba0"
+            },
+            "us-west-1": {
+                "AMAZONLINUXAMI": "ami-02eada62"
+            },
+            "us-west-2": {
+                "AMAZONLINUXAMI": "ami-e689729e"
+            },
+            "ca-central-1": {
+                "AMAZONLINUXAMI": "ami-fd55ec99"
+            },
+            "eu-west-1": {
+                "AMAZONLINUXAMI": "ami-acd005d5"
+            },
+            "eu-central-1": {
+                "AMAZONLINUXAMI": "ami-c7ee5ca8"
+            },
+            "eu-west-2": {
+                "AMAZONLINUXAMI": "ami-1a7f6d7e"
+            },
+            "ap-southeast-1": {
+                "AMAZONLINUXAMI": "ami-0797ea64"
+            },
+            "ap-southeast-2": {
+                "AMAZONLINUXAMI": "ami-8536d6e7"
+            },
+            "ap-northeast-2": {
+                "AMAZONLINUXAMI": "ami-9bec36f5"
+            },
+            "ap-northeast-1": {
+                "AMAZONLINUXAMI": "ami-2a69be4c"
+            },
+            "ap-south-1": {
+                "AMAZONLINUXAMI": "ami-4fc58420"
+            },
+            "sa-east-1": {
+                "AMAZONLINUXAMI": "ami-f1344b9d"
+            }
+        }
+    },
+    "Resources": {
+        "VPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/22",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenVPN-VPC"
+                    }
+                ]
+            }
+        },
+        "PublicSubnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "CidrBlock": "10.0.0.0/24",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenVPN-Public-Subnet"
+                    }
+                ]
+            }
+        },
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenVPN-IGW"
+                    }
+                ]
+            }
+        },
+        "RouteTablePublic": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenVPN-Route-Table-Public"
+                    }
+                ]
+            }
+        },
+        "AttachInternetGateway": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+        "RouteDefaultPublic": {
+            "Type": "AWS::EC2::Route",
+            "DependsOn": "InternetGateway",
+            "Properties": {
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "InternetGateway"
+                },
+                "RouteTableId": {
+                    "Ref": "RouteTablePublic"
+                }
+            }
+        },
+        "PublicSubnetRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "PublicSubnet"
+                },
+                "RouteTableId": {
+                    "Ref": "RouteTablePublic"
+                }
+            }
+        },
+        "EIP": {
+            "Type": "AWS::EC2::EIP",
+            "Properties": {
+                "Domain": "vpc"
+            }
+        },
+        "AssociateManagementAccessPort": {
+            "Type": "AWS::EC2::EIPAssociation",
+            "Properties": {
+                "AllocationId": {
+                    "Fn::GetAtt": [
+                        "EIP",
+                        "AllocationId"
+                    ]
+                },
+                "NetworkInterfaceId": {
+                    "Ref": "NetworkInterface"
+                }
+            }
+        },
+        "OpenVPNInstanceSG": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "SG for OpenVPN Server",
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": {
+                            "Ref": "OpenVPNPort"
+                        },
+                        "ToPort": {
+                            "Ref": "OpenVPNPort"
+                        },
+                        "CidrIp": {
+                            "Ref": "ClientIPCIDR"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "CidrIp": {
+                            "Ref": "ClientIPCIDR"
+                        }
+                    }
+                ]
+            }
+        },
+        "EC2InstanceRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/"
+            }
+        },
+        "AccessPolicy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "AccessPolicy",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "s3:*"
+                            ],
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "EC2InstanceRole"
+                    }
+                ]
+            }
+        },
+        "ec2InstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "EC2InstanceRole"
+                    }
+                ]
+            }
+        },
+        "NetworkInterface": {
+            "Type": "AWS::EC2::NetworkInterface",
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "PublicSubnet"
+                },
+                "Description": "Public Interface",
+                "GroupSet": [
+                    {
+                        "Ref": "OpenVPNInstanceSG"
+                    }
+                ],
+                "SourceDestCheck": false,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Public ENI"
+                    }
+                ]
+            }
+        },
+        "S3Bucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "AccessControl": "Private"
+            }
+        },
+        "EC2OpenVPNInstance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "RegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "AMAZONLINUXAMI"
+                    ]
+                },
+                "InstanceType": "t2.micro",
+                "SourceDestCheck": false,
+                "KeyName": {
+                    "Ref": "SSHKeyName"
+                },
+                "NetworkInterfaces": [
+                    {
+                        "NetworkInterfaceId": {
+                            "Ref": "NetworkInterface"
+                        },
+                        "DeviceIndex": 0
+                    }
+                ],
+                "IamInstanceProfile": {
+                    "Ref": "ec2InstanceProfile"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "OpenVPN Server"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "S3BucketOut": {
+            "Description": "S3 bucket name",
+            "Value": {
+                "Ref": "S3Bucket"
+            }
+        },
+        "EIPOut": {
+            "Description": "Instance EIP",
+            "Value": {
+                "Ref": "EIP"
+            }
+        },
+        "EC2OpenVPNInstanceOut": {
+            "Description": "EC2 Instance",
+            "Value": {
+                "Ref": "EC2OpenVPNInstance"
+            }
+        }
+    }
+}
