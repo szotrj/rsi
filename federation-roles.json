@@ -1,0 +1,155 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Creates federation roles for an account",
+  "Parameters": {
+	"Region": {
+      "Description": "AWS Region",
+      "Type": "String",
+      "AllowedValues": ["Commercial","GovCloud","SC2S", "C2S"]
+    },
+    "EnvType": {
+      "Description": "Environment Type",
+      "Type": "String",
+      "AllowedValues": ["DEV", "PROD"]
+    },
+    "CAPAccountId": {
+      "Description" : "Account ID of the Cloud Access Portal",
+      "Type": "String"
+    }
+  },
+  "Mappings" : {
+    "RegionMap" : {
+      "us-east-1" : { "ARN" : "aws" },
+      "us-east-2" : { "ARN" : "aws" },
+      "us-west-1" : { "ARN" : "aws" },
+      "us-west-2" : { "ARN" : "aws" },
+      "us-gov-west-1" : { "ARN" : "aws-us-gov" },
+      "us-isob-east-1" : { "ARN" : "aws-iso-b" },
+      "us-iso-east-1" : { "ARN" : "aws-iso" }
+    }
+  },
+  "Conditions": {
+    "DEV" : { "Fn::Equals" : [{"Ref" : "EnvType"}, "DEV" ]},
+    "PROD" : { "Fn::Equals" : [{"Ref" : "EnvType"}, "PROD" ]},
+    "AIRGAPPED" : { "Fn::Or" : [ { "Fn::Equals" : [{"Ref" : "Region"}, "SC2S"]}, { "Fn::Equals" : [{"Ref" : "Region"}, "C2S"]} ] },
+	  "GOVCLOUD" : { "Fn::Equals" : [{ "Ref" : "Region"}, "GovCloud" ]}
+  },
+  "Resources": {
+    "TrustPolicy" : {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "root",
+        "PolicyDocument": [
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": { "Fn::If" : [ "AIRGAPPED",
+                    { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
+                    { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
+                  ]
+                },
+                "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+				"Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, "StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } ] }
+              }
+            ]
+          }
+        ],
+        "Roles": [ { "Ref": "WLDeveloper" } ]
+      }
+    },
+    "ComputePolicy" : {
+      "Type" : "AWS::IAM::Policy",
+      "Properties" : {
+        "PolicyName" : "WLDeveloper-Compute",
+        "PolicyDocument" : {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "ComputeBundle",
+              "Effect": "Allow",
+              "Action": [
+                "ec2:*",
+                "autoscaling:*",
+                "elasticloadbalancing:*",
+                "elasticbeanstalk:*",
+                "ecs:*",
+                "ecr:*",
+                "iam:CreateServiceLinkedRole",
+                "iam:DeleteServerCertificate",
+                "iam:PassRole",
+                "iam:UpdateServerCertificate",
+                "iam:UploadServerCertificate"				
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "ComputeBundleDenyNet",
+              "Effect": "Deny",
+              "Action": [
+                "ec2:CreateVpc",
+                "ec2:DeleteVpc",
+                "ec2:CreateVpcPeeringConnection",
+                "ec2:AcceptVpcPeeringConnection",
+                "ec2:RejectVpcPeeringConnection",
+                "ec2:DeleteVpcPeeringConnection",
+                "ec2:CreateInternetGateway",
+                "ec2:AttachInternetGateway",
+                "ec2:DetachInternetGateway",
+                "ec2:DeleteInternetGateway",
+                "ec2:CreateVpnConnection",
+                "ec2:CreateVpnConnectionRoute",
+                "ec2:DeleteVpnConnection",
+                "ec2:DeleteVpnConnectionRoute",
+                "ec2:CreateVpnGateway",
+                "ec2:AttachVpnGateway",
+                "ec2:DetachVpnGateway",
+                "ec2:DeleteVpnGateway",
+                "ec2:CreateCustomerGateway",
+                "ec2:DeleteCustomerGateway"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "ComputeBundleDenyImage",
+              "Effect": "Deny",
+              "Action": [
+                "ec2:CreateInstanceExportTask",
+                "ec2:CancelExportTask",
+                "ec2:ModifyImageAttribute"
+              ],
+              "Resource": "*"
+            }
+          ]
+        },
+        "Roles" : { "Fn::If" : [ "DEV", [ { "Ref" : "WLDeveloper" } ], [ { "Ref" : "WLDeveloper" } ] ] }
+      }
+    },
+    "WLDeveloper" : {
+      "Type": "AWS::IAM::Role",
+	  "Condition" : "DEV",
+      "Properties" : {
+		"RoleName": { "Fn::If" : [ "AIRGAPPED", "WLDEVELOPER", "FBIGOV-WLDeveloper" ] },
+		"AssumeRolePolicyDocument": {
+		  "Version": "2012-10-17",
+		  "Statement": [
+			{
+			  "Effect": "Allow",
+			  "Principal": { "Fn::If" : [ "AIRGAPPED",
+				{ "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
+				{ "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
+			  ]},
+			  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+			  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, "StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } ] }
+			}
+		  ]
+		},
+		"Policies" : [
+		]
+	  }
+    }
+  },
+  "Outputs":{
+  }
+}
