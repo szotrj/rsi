@@ -1,0 +1,16 @@
+{
+  "Version": "2012-10-17",
+  "Id": "WLDeveloper-AI",
+  "Statement": [
+    {
+      "Sid":"ArtificialIntelligence",
+      "Effect": "Allow",
+      "Action": [
+        "polly:*",
+        "rekognition:*",
+        "translate:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

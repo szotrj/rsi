@@ -1,0 +1,14 @@
+{
+  "Version": "2012-10-17",
+  "Id": "WLDeveloper-redshift",
+  "Statement": [
+    {
+      "Sid":"RedShiftBundle",
+      "Effect": "Allow",
+      "Action": [
+        "redshift:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

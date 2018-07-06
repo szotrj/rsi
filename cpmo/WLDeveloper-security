@@ -1,0 +1,16 @@
+{
+  "Version": "2012-10-17",
+  "Id": "WLDeveloper-Security",
+  "Statement": [
+    {
+      "Sid":"SecurityAndIdentity",
+      "Effect": "Allow",
+      "Action": [
+        "acm:*",
+        "cloudhsm:*",
+        "inspector:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

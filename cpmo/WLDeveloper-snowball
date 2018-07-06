@@ -1,0 +1,14 @@
+{
+  "Version": "2012-10-17",
+  "Id": "WLDeveloper-snowball",
+  "Statement": [
+    {
+      "Sid":"SnowballBundle",
+      "Effect": "Allow",
+      "Action": [
+        "snowball:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Id": "WLDeveloper-apps",
+  "Statement": [
+    {
+      "Sid":"AppServicesBundle",
+      "Effect": "Allow",
+      "Action": [
+        "sns:*",
+        "sqs:*",
+        "swf:*",
+        "ses:*",
+        "apigateway:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

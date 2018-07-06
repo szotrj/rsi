@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "baseline",
+      "Action": [
+        "health:*",
+        "sts:DecodeAuthorizationMessage",
+        "sts:GetCallerIdentity",
+        "support:*",
+        "trustedadvisor:Describe*",
+        "trustedadvisor:RefreshCheck"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}

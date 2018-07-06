@@ -1,0 +1,127 @@
+{
+  "Version": "2012-10-17",
+  "Id": "NetAdmin-vpc",
+  "Statement": [
+    {
+      "Sid":"PrivilegedNetwork",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CreateVpc",
+        "ec2:DeleteVpc",
+        "ec2:ModifyVpcAttribute",
+
+        "ec2:CreateVpcPeeringConnection",
+        "ec2:AcceptVpcPeeringConnection",
+        "ec2:RejectVpcPeeringConnection",
+        "ec2:DeleteVpcPeeringConnection",
+
+        "ec2:CreateInternetGateway",
+        "ec2:AttachInternetGateway",
+        "ec2:DetachInternetGateway",
+        "ec2:DeleteInternetGateway",
+
+        "ec2:CreateVpnConnection",
+        "ec2:CreateVpnConnectionRoute",
+        "ec2:DeleteVpnConnection",
+        "ec2:DeleteVpnConnectionRoute",
+        "ec2:CreateVpnGateway",
+        "ec2:AttachVpnGateway",
+        "ec2:DetachVpnGateway",
+        "ec2:DeleteVpnGateway",
+        "ec2:DisableVgwRoutePropagation",
+        "ec2:EnableVgwRoutePropagation",
+        "ec2:CreateCustomerGateway",
+        "ec2:DeleteCustomerGateway",
+
+        "ec2:CreateNetworkAcl",
+        "ec2:CreateNetworkAclEntry",
+        "ec2:DeleteNetworkAcl",
+        "ec2:DeleteNetworkAclEntry",
+        "ec2:ReplaceNetworkAclAssociation",
+        "ec2:ReplaceNetworkAclEntry",
+
+        "ec2:CreateRoute",
+        "ec2:CreateRouteTable",
+        "ec2:DeleteRoute",
+        "ec2:DeleteRouteTable",
+        "ec2:ReplaceRoute",
+        "ec2:AssociateRouteTable",
+        "ec2:ReplaceRouteTableAssociation",
+        "ec2:DisassociateRouteTable",
+
+        "ec2:CreateDhcpOptions",
+        "ec2:AssociateDhcpOptions",
+        "ec2:DeleteDhcpOptions",
+
+        "ec2:RevokeSecurityGroupEgress",
+        "ec2:RevokeSecurityGroupIngress",
+        "ec2:DeleteSecurityGroup",
+        "ec2:DeleteSubnet",
+        
+        "directconnect:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid":"Tagging",
+      "Effect": "Allow",
+      "Action": [
+        "autoscaling:CreateOrUpdateTags",
+        "autoscaling:DeleteTags",
+        "autoscaling:DescribeTags",
+        "ec2:CreateTags",
+        "ec2:DeleteTags",
+        "ec2:DescribeTags",
+        "elasticloadbalancing:AddTags",
+        "elasticloadbalancing:DescribeTags",
+        "elasticloadbalancing:RemoveTags",
+        "elasticmapreduce:AddTags",
+        "elasticmapreduce:RemoveTags",
+        "rds:AddTagsToResource",
+        "rds:ListTagsForResource",
+        "rds:RemoveTagsFromResource",
+        "s3:GetBucketTagging",
+        "s3:PutBucketTagging"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid":"ReadAll",
+      "Effect": "Allow",
+      "Action": [
+        "autoscaling:Describe*",
+        "cloudformation:Describe*",
+        "cloudformation:Get*",
+        "cloudformation:List*",
+        "cloudwatch:Describe*",
+        "cloudwatch:Get*",
+        "cloudwatch:List*",
+        "ec2:Describe*",
+        "ec2:Get*",
+        "elasticloadbalancing:Describe*",
+        "elasticmapreduce:Describe*",
+        "elasticmapreduce:List*",
+        "iam:Get*",
+        "iam:List*",
+        "rds:Describe*",
+        "rds:List*",
+        "s3:GetBucket*",
+        "s3:GetLifecycleConfiguration",
+        "s3:GetObjectAcl",
+        "s3:GetObjectTorrent",
+        "s3:GetObjectVersionAcl",
+        "s3:GetObjectVersionTorrent",
+        "s3:List*",
+        "sns:Get*",
+        "sns:List*",
+        "sqs:Get*",
+        "sqs:List*",
+        "sts:Get*",
+        "swf:Describe*",
+        "swf:Get*",
+        "swf:List*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

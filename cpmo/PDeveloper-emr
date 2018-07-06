@@ -1,0 +1,14 @@
+{
+  "Version": "2012-10-17",
+  "Id": "WLDeveloper-emr",
+  "Statement": [
+    {
+      "Sid":"EMRBundle",
+      "Effect": "Allow",
+      "Action": [
+        "elasticmapreduce:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

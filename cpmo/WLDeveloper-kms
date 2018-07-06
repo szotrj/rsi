@@ -1,0 +1,21 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid":"KMSUser",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:GenerateRandom",
+        "kms:Describe*",
+        "kms:Get*",
+        "kms:List*",
+	"kms:CreateGrant"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

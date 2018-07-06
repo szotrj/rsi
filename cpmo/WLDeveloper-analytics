@@ -1,0 +1,16 @@
+{
+  "Version": "2012-10-17",
+  "Id": "WLDeveloper-Analytics",
+  "Statement": [
+    {
+      "Sid":"AnalyticsBundle",
+      "Effect": "Allow",
+      "Action": [
+        "elasticmapreduce:*",
+        "es:*",
+        "kinesis:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

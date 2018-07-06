@@ -1,0 +1,14 @@
+{
+  "Version": "2012-10-17",
+  "Id": "WLDeveloper-rds",
+  "Statement": [
+    {
+      "Sid":"RDSBundle",
+      "Effect": "Allow",
+      "Action": [
+        "rds:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

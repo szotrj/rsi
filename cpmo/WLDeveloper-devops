@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Id": "WLDeveloper-devops",
+  "Statement": [
+    {
+      "Sid":"DevOpsBundle",
+      "Effect": "Allow",
+      "Action": [
+        "codepipeline:*",
+        "codedeploy:*",
+        "codebuild:*",
+        "codecommit:*",
+        "opsworks:*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
