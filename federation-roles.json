@@ -13,54 +13,31 @@
       "AllowedValues": ["DEV", "PROD"]
     },
     "CAPAccountId": {
-      "Description" : "Account ID of the Cloud Access Portal",
+      "Description": "Account ID of the Cloud Access Portal",
       "Type": "String"
     }
   },
-  "Mappings" : {
-    "RegionMap" : {
-      "us-east-1" : { "ARN" : "aws" },
-      "us-east-2" : { "ARN" : "aws" },
-      "us-west-1" : { "ARN" : "aws" },
-      "us-west-2" : { "ARN" : "aws" },
-      "us-gov-west-1" : { "ARN" : "aws-us-gov" },
-      "us-isob-east-1" : { "ARN" : "aws-iso-b" },
-      "us-iso-east-1" : { "ARN" : "aws-iso" }
+  "Mappings": {
+    "RegionMap": {
+      "us-east-1":      { "ARN" : "aws" },
+      "us-east-2":      { "ARN" : "aws" },
+      "us-west-1":      { "ARN" : "aws" },
+      "us-west-2":      { "ARN" : "aws" },
+      "us-gov-west-1":  { "ARN" : "aws-us-gov" },
+      "us-isob-east-1": { "ARN" : "aws-iso-b" },
+      "us-iso-east-1":  { "ARN" : "aws-iso" }
     }
   },
   "Conditions": {
-    "DEV" : { "Fn::Equals" : [{"Ref" : "EnvType"}, "DEV" ]},
-    "PROD" : { "Fn::Equals" : [{"Ref" : "EnvType"}, "PROD" ]},
+    "DEV"       : { "Fn::Equals" : [{"Ref" : "EnvType"}, "DEV" ]},
+    "PROD"      : { "Fn::Equals" : [{"Ref" : "EnvType"}, "PROD" ]},
     "AIRGAPPED" : { "Fn::Or" : [ { "Fn::Equals" : [{"Ref" : "Region"}, "SC2S"]}, { "Fn::Equals" : [{"Ref" : "Region"}, "C2S"]} ] },
-	  "GOVCLOUD" : { "Fn::Equals" : [{ "Ref" : "Region"}, "GovCloud" ]}
+	  "GOVCLOUD"  : { "Fn::Equals" : [{ "Ref" : "Region"}, "GovCloud" ]}
   },
-  "Resources": {
-    "TrustPolicy" : {
-      "Type": "AWS::IAM::Policy",
-      "Properties": {
-        "PolicyName": "root",
-        "PolicyDocument": [
-          {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Effect": "Allow",
-                "Principal": { "Fn::If" : [ "AIRGAPPED",
-                    { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-                    { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-                  ]
-                },
-                "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-				"Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, "StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } ] }
-              }
-            ]
-          }
-        ],
-        "Roles": [ { "Ref": "WLDeveloper" } ]
-      }
-    },
+  "Resources" : {
     "ComputePolicy" : {
       "Type" : "AWS::IAM::Policy",
+      "Condition" : "DEV",
       "Properties" : {
         "PolicyName" : "WLDeveloper-Compute",
         "PolicyDocument" : {
@@ -80,7 +57,7 @@
                 "iam:DeleteServerCertificate",
                 "iam:PassRole",
                 "iam:UpdateServerCertificate",
-                "iam:UploadServerCertificate"				
+                "iam:UploadServerCertificate"
               ],
               "Resource": "*"
             },
@@ -123,31 +100,130 @@
             }
           ]
         },
-        "Roles" : { "Fn::If" : [ "DEV", [ { "Ref" : "WLDeveloper" } ], [ { "Ref" : "WLDeveloper" } ] ] }
+        "Roles" : [ { "Ref" : "WLDeveloper" } ]
       }
+    },
+    "Administrator" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+		    "RoleName": { "Fn::If" : [ "AIRGAPPED", "ADMINISTRATOR", "FBIGOV-Administrator" ] },
+		    "AssumeRolePolicyDocument": {
+		      "Version": "2012-10-17",
+		      "Statement": [
+			      {
+			        "Effect": "Allow",
+			        "Principal": { "Fn::If" : [ "AIRGAPPED",
+				        { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
+				        { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
+			        ]},
+			        "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+			        "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+			      }
+		      ]
+		    }
+	    }
+    },
+    "BuAnalyst" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+		    "RoleName": { "Fn::If" : [ "AIRGAPPED", "BUANALYST", "FBIGOV-BuAnalyst" ] },
+		    "AssumeRolePolicyDocument": {
+		      "Version": "2012-10-17",
+		      "Statement": [
+			      {
+			        "Effect": "Allow",
+			        "Principal": { "Fn::If" : [ "AIRGAPPED",
+				        { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
+				        { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
+			        ]},
+			        "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+			        "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+			      }
+		      ]
+		    }
+	    }
+    },
+    "Compute" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+		    "RoleName": { "Fn::If" : [ "AIRGAPPED", "COMPUTE", "FBIGOV-Compute" ] },
+		    "AssumeRolePolicyDocument": {
+		      "Version": "2012-10-17",
+		      "Statement": [
+			      {
+			        "Effect": "Allow",
+			        "Principal": { "Fn::If" : [ "AIRGAPPED",
+				        { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
+				        { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
+			        ]},
+			        "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+			        "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+			      }
+		      ]
+		    }
+	    }
     },
     "WLDeveloper" : {
       "Type": "AWS::IAM::Role",
-	  "Condition" : "DEV",
+	    "Condition" : "DEV",
       "Properties" : {
-		"RoleName": { "Fn::If" : [ "AIRGAPPED", "WLDEVELOPER", "FBIGOV-WLDeveloper" ] },
-		"AssumeRolePolicyDocument": {
-		  "Version": "2012-10-17",
-		  "Statement": [
-			{
-			  "Effect": "Allow",
-			  "Principal": { "Fn::If" : [ "AIRGAPPED",
-				{ "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-				{ "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-			  ]},
-			  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-			  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, "StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } ] }
-			}
-		  ]
-		},
-		"Policies" : [
-		]
-	  }
+		    "RoleName": { "Fn::If" : [ "AIRGAPPED", "WLDEVELOPER", "FBIGOV-WLDeveloper" ] },
+		    "AssumeRolePolicyDocument": {
+		      "Version": "2012-10-17",
+		      "Statement": [
+			      {
+			        "Effect": "Allow",
+			        "Principal": { "Fn::If" : [ "AIRGAPPED",
+				        { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
+				        { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
+			        ]},
+			        "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+			        "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+			      }
+		      ]
+		    }
+	    }
+    },
+    "PDeveloper" : {
+      "Type": "AWS::IAM::Role",
+	    "Condition" : "PROD",
+      "Properties" : {
+		    "RoleName": { "Fn::If" : [ "AIRGAPPED", "PDEVELOPER", "FBIGOV-PDeveloper" ] },
+		    "AssumeRolePolicyDocument": {
+		      "Version": "2012-10-17",
+		      "Statement": [
+			      {
+			        "Effect": "Allow",
+			        "Principal": { "Fn::If" : [ "AIRGAPPED",
+				        { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
+				        { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
+			        ]},
+			        "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+			        "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+			      }
+		      ]
+		    }
+	    }
+    },
+    "TechReadOnly" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+		    "RoleName": { "Fn::If" : [ "AIRGAPPED", "TREADONLY", "FBIGOV-TReadOnly" ] },
+		    "AssumeRolePolicyDocument": {
+		      "Version": "2012-10-17",
+		      "Statement": [
+			      {
+			        "Effect": "Allow",
+			        "Principal": { "Fn::If" : [ "AIRGAPPED",
+				        { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
+				        { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
+			        ]},
+			        "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+			        "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+			      }
+		      ]
+		    }
+	    }
     }
   },
   "Outputs":{
