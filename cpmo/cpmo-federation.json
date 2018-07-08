@@ -119,9 +119,9 @@
             "Resource" : "*"
           }]
         },
-        "Roles" : [{"Ref" : "Administrator" }, { "Ref" : "BuAnalyst" }, { "Ref" : "Compute" }, { "Ref" : "Network" }, { "Ref" : "PDeveloper" }, { "Ref" : "Provisioning" }, { "Ref" : "TReadOnly" }, { "Ref" : "WLDeveloper"}]
+        "Roles" : [{"Ref" : "Administrator" }, { "Ref" : "BuAnalyst" }, { "Ref" : "Compute" }, { "Ref" : "Network" }, { "Ref" : "PDeveloper" }, { "Ref" : "Provisioning" }, { "Ref" : "Security" }, { "Ref" : "TReadOnly" }, { "Ref" : "WLDeveloper"}]
       },
-      "DependsOn": [ "Administrator", "BuAnalyst", "Compute", "Network", "PDeveloper", "Provisioning", "TReadOnly", "WLDeveloper" ]
+      "DependsOn": [ "Administrator", "BuAnalyst", "Compute", "Network", "PDeveloper", "Provisioning", "Security", "TReadOnly", "WLDeveloper" ]
   },
   "BusReadOnlyPolicy" : {
       "Type" : "AWS::IAM::Policy",
