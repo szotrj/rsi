@@ -1249,40 +1249,40 @@
   },
   "Outputs":{
     "Administrator" : {
-      "Description" : "Administrator role name",
-      "Value" : { "Ref" : "Administrator" }
+      "Description" : "Administrator role ARN",
+      "Value" : { "Fn::GetAtt" : [ "Administrator", "Arn" ] }
     },
     "BuAnalyst" : {
-      "Description" : "Business Analyst role name",
-      "Value" : { "Ref" : "BuAnalyst" }
+      "Description" : "Business Analyst role ARN",
+      "Value" : { "Fn::GetAtt" : [ "BuAnalyst", "Arn" ] }
     },
     "Compute" : {
-      "Description" : "Compute Admin role name",
-      "Value" : { "Ref" : "Compute" }
+      "Description" : "Compute Admin role ARN",
+      "Value" : { "Fn::GetAtt" : [ "Compute", "Arn" ] }
     },
     "Network" : {
-      "Description" : "Network Admin role name",
-      "Value" : { "Ref" : "Network" }
+      "Description" : "Network Admin role ARN",
+      "Value" : { "Fn::GetAtt" : [ "Network", "Arn" ] }
     },
     "PDeveloper" : {
-      "Description" : "Production Developer role name",
-      "Value" : { "Ref" : "PDeveloper" }
+      "Description" : "Production Developer role ARN",
+      "Value" : { "Fn::GetAtt" : [ "PDeveloper", "Arn" ] }
     },
     "Provisioning" : {
-      "Description" : "Provisioning role name",
-      "Value" : { "Ref" : "Provisioning" }
+      "Description" : "Provisioning role ARN",
+      "Value" : { "Fn::GetAtt" : [ "Provisioning", "Arn" ] }
     },
     "Security" : {
-      "Description" : "Security role name",
-      "Value" : { "Ref" : "Security" }
+      "Description" : "Security role ARN",
+      "Value" : { "Fn::GetAtt" : [ "Security", "Arn" ] }
     },
     "TReadOnly" : {
-      "Description" : "Tech Read Only role name",
-      "Value" : { "Ref" : "TReadOnly" }
+      "Description" : "Tech Read Only role ARN",
+      "Value" : { "Fn::GetAtt" : [ "TReadOnly", "Arn" ] }
     },
     "WLDeveloper" : {
-      "Description" : "Workload Developer role name",
-      "Value" : { "Ref" : "WLDeveloper" },
+      "Description" : "Workload Developer role ARN",
+      "Value" : { "Fn::GetAtt" : [ "WLDeveloper", "Arn" ] },
       "Condition" : "DEV"
     }
   }
