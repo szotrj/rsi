@@ -1,0 +1,185 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Management Lambda Functions",
+    "Parameters": {
+        "S3Bucket": {
+            "Type": "String",
+            "Default": "rsi-lambda-functions",
+            "Description": "S3 bucket for Lambda functions"
+        },
+        "Package": {
+            "Type": "String",
+            "Default": "lambda-functions.zip",
+            "Description": "S3 key for Lambda code"
+        },
+        "LambdaRole": {
+            "Type": "String",
+            "Default": "RSI-LambdaRole",
+            "Description": "Name of the Lambda Role"
+        }
+    },
+    "Resources": {
+        "stopInstances": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName" : "stopInstances",
+                "Handler": "stopInstances.lambda_handler",
+                "Runtime": "python2.7",
+                "Code": {
+                    "S3Bucket": { "Ref" : "S3Bucket" },
+                    "S3Key": { "Ref" : "Package" }
+                },
+                "Description": "Stop EC2 Instances",
+                "MemorySize": 128,
+                "Timeout": 30,
+                "Role": { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":role/", { "Ref" : "LambdaRole" } ] ] },
+                "Tags": [ { "Key": "ResourceType", "Value": "Lambda" } ]
+            }
+        },
+        "ScheduledRule1": {
+ 	"Type": "AWS::Events::Rule",
+	  "Properties": {
+            "Name": "stopInstances",
+ 	    "Description": "Scheduled Rule to stop EC2 instances",
+	    "ScheduleExpression": "cron(0 4 ? * MON-SUN *)",
+	    "State": "DISABLED",
+	    "Targets": [{
+	      "Arn": { "Fn::GetAtt": ["stopInstances", "Arn"] },
+	      "Id": "TargetFunctionV1"
+	    }]
+	  }
+	},
+	"PermissionForEventsToInvokeLambda1": {
+	  "Type": "AWS::Lambda::Permission",
+	  "Properties": {
+	    "FunctionName": { "Ref": "stopInstances" },
+	    "Action": "lambda:InvokeFunction",
+	    "Principal": "events.amazonaws.com",
+	    "SourceArn": { "Fn::GetAtt": ["ScheduledRule1", "Arn"] }
+	  }
+	},
+	"startInstances": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName" : "startInstances",
+                "Handler": "startInstances.lambda_handler",
+                "Runtime": "python2.7",
+                "Code": {
+                    "S3Bucket": { "Ref" : "S3Bucket" },
+                    "S3Key": { "Ref" : "Package" }
+                },
+                "Description": "Start EC2 Instances",
+                "MemorySize": 128,
+                "Timeout": 30,
+                "Role": { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":role/", { "Ref" : "LambdaRole" } ] ] },
+                "Tags": [ { "Key": "ResourceType", "Value": "Lambda" } ]
+            }
+        },
+        "ScheduledRule2": {
+ 	"Type": "AWS::Events::Rule",
+	  "Properties": {
+            "Name": "startInstances",
+ 	    "Description": "Scheduled Rule to start EC2 instances",
+	    "ScheduleExpression": "cron(0 10 ? * MON-SUN *)",
+	    "State": "DISABLED",
+	    "Targets": [{
+	      "Arn": { "Fn::GetAtt": ["startInstances", "Arn"] },
+	      "Id": "TargetFunctionV2"
+	    }]
+	  }
+	},
+	"PermissionForEventsToInvokeLambda2": {
+	  "Type": "AWS::Lambda::Permission",
+	  "Properties": {
+	    "FunctionName": { "Ref": "startInstances" },
+	    "Action": "lambda:InvokeFunction",
+	    "Principal": "events.amazonaws.com",
+	    "SourceArn": { "Fn::GetAtt": ["ScheduledRule2", "Arn"] }
+	  }
+	},
+	"deleteUnattachedEBSVolumes": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName" : "deleteUnattachedEBSVolumes",
+                "Handler": "deleteUnattachedEBSVolumes.lambda_handler",
+                "Runtime": "python2.7",
+                "Code": {
+                    "S3Bucket": { "Ref" : "S3Bucket" },
+                    "S3Key": { "Ref" : "Package" }
+                },
+                "Description": "Deletes unattached/untagged EBS volumes",
+                "MemorySize": 128,
+                "Timeout": 30,
+                "Role": { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":role/", { "Ref" : "LambdaRole" } ] ] },
+                "Tags": [ { "Key": "ResourceType", "Value": "Lambda" } ]
+            }
+        },
+        "ScheduledRule3": {
+ 	"Type": "AWS::Events::Rule",
+	  "Properties": {
+            "Name": "deleteUnattachedEBSVolumes",
+ 	    "Description": "Scheduled Rule to delete unattached EBS volumes",
+	    "ScheduleExpression": "rate(1 day)",
+	    "State": "DISABLED",
+	    "Targets": [{
+	      "Arn": { "Fn::GetAtt": ["deleteUnattachedEBSVolumes", "Arn"] },
+	      "Id": "TargetFunctionV3"
+	    }]
+	  }
+	},
+	"PermissionForEventsToInvokeLambda3": {
+	  "Type": "AWS::Lambda::Permission",
+	  "Properties": {
+	    "FunctionName": { "Ref": "deleteUnattachedEBSVolumes" },
+	    "Action": "lambda:InvokeFunction",
+	    "Principal": "events.amazonaws.com",
+	    "SourceArn": { "Fn::GetAtt": ["ScheduledRule3", "Arn"] }
+	  }
+        },
+	"autoTagEBSVolumes": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName" : "autoTagEBSVolumes",
+                "Handler": "autoTagEBSVolumes.lambda_handler",
+                "Runtime": "python2.7",
+                "Code": {
+                    "S3Bucket": { "Ref" : "S3Bucket" },
+                    "S3Key": { "Ref" : "Package" }
+                },
+                "Description": "Automatically name EBS volumes based on attached AMI name",
+                "MemorySize": 128,
+                "Timeout": 30,
+                "Role": { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":role/", { "Ref" : "LambdaRole" } ] ] },
+                "Tags": [ { "Key": "ResourceType", "Value": "Lambda" } ]
+            }
+        },
+        "ScheduledRule4": {
+ 	"Type": "AWS::Events::Rule",
+	  "Properties": {
+            "Name": "autoTagEBSVolumes",
+ 	    "Description": "Scheduled Rule to auto tag EBS volumes",
+	    "ScheduleExpression": "rate(1 day)",
+	    "State": "DISABLED",
+	    "Targets": [{
+	      "Arn": { "Fn::GetAtt": ["autoTagEBSVolumes", "Arn"] },
+	      "Id": "TargetFunctionV4"
+	    }]
+	  }
+	},
+	"PermissionForEventsToInvokeLambda4": {
+	  "Type": "AWS::Lambda::Permission",
+	  "Properties": {
+	    "FunctionName": { "Ref": "autoTagEBSVolumes" },
+	    "Action": "lambda:InvokeFunction",
+	    "Principal": "events.amazonaws.com",
+	    "SourceArn": { "Fn::GetAtt": ["ScheduledRule4", "Arn"] }
+	  }
+        }
+    },
+    "Outputs": {
+      "Message": {
+        "Description": "Note:",
+        "Value" : "CloudWatch Events are disabled. To schedule Lambda functions, enable the Events in CloudWatch."
+      }
+    }
+}
