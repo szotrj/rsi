@@ -119,7 +119,8 @@
             "Resource" : "*"
           }]
         },
-        "Roles" : [{"Ref" : "Administrator" }, { "Ref" : "BuAnalyst" }, { "Ref" : "Compute" }, { "Ref" : "Network" }, { "Ref" : "PDeveloper" }, { "Ref" : "Provisioning" }, { "Ref" : "Security" }, { "Ref" : "TReadOnly" }, { "Ref" : "WLDeveloper"}]
+        "Roles" : [{"Ref" : "Administrator" }, { "Ref" : "BuAnalyst" }, { "Ref" : "Compute" }, { "Ref" : "Network" }, { "Ref" : "PDeveloper" }, { "Ref" : "Provisioning" },
+          { "Ref" : "Security" }, { "Ref" : "TReadOnly" }, { "Fn::If" : [ "DEV", { "Ref" : "WLDeveloper"}, { "Ref" : "AWS::NoValue"}]}]
       }
   },
   "BusReadOnlyPolicy" : {
@@ -538,7 +539,7 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }, { "Ref" : "PDeveloper" }]
+        "Roles" : [{ "Ref" : "PDeveloper" }, { "Fn::If" : [ "DEV", { "Ref" : "WLDeveloper"}, { "Ref" : "AWS::NoValue"}]}]
       }
   },
 	"NetworkPolicy" : {
@@ -898,7 +899,7 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "Security" }, { "Ref" : "WLDeveloper" }]
+        "Roles" : [{ "Ref" : "Security" }, { "Fn::If" : [ "DEV", { "Ref" : "WLDeveloper"}, { "Ref" : "AWS::NoValue"}]}]
       }
   },
 	"SnowballPolicy" : {
@@ -965,7 +966,7 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }, { "Ref" : "PDeveloper" }]
+        "Roles" : [{ "Ref" : "PDeveloper" }, { "Fn::If" : [ "DEV", { "Ref" : "WLDeveloper"}, { "Ref" : "AWS::NoValue"}]}]
       }
   },
 	"StoragePolicy" : {
@@ -1247,42 +1248,5 @@
       }
   },
   "Outputs":{
-    "Administrator" : {
-      "Description": "Administrator Role Name",
-      "Value" : { "Ref" : "Administrator" }
-    },
-    "BuAnalyst" : {
-      "Description": "Business Analyst Role Name",
-      "Value" : { "Ref" : "BuAnalyst" }
-    },
-    "Compute" : {
-      "Description": "Compute Role Name",
-      "Value" : { "Ref" : "Compute" }
-    },
-    "Network" : {
-      "Description": "Network Role Name",
-      "Value" : { "Ref" : "Network" }
-    },
-    "PDeveloper" : {
-      "Description": "Production Developer Role Name",
-      "Value" : { "Ref" : "PDeveloper" }
-    },
-    "Provisioning" : {
-      "Description": "Provisioning Role Name",
-      "Value" : { "Ref" : "Provisioning" }
-    },
-    "Security" : {
-      "Description": "Security Role Name",
-      "Value" : { "Ref" : "Security" }
-    },
-    "TReadOnly" : {
-      "Description": "Tech Read Only Role Name",
-      "Value" : { "Ref" : "TReadOnly" }
-    },
-    "WLDeveloper" : {
-      "Description": "Workload Developer Role Name",
-      "Value" : { "Ref" : "WLDeveloper" },
-      "Condition" : "DEV"
-    },
   }
 }
