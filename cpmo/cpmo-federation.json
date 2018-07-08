@@ -33,6 +33,7 @@
   "Resources" : {
     "AIPolicy" : {
       "Type" : "AWS::IAM::Policy",
+      "Condition" : "DEV",
       "Properties" : {
         "PolicyName" : "WLDeveloper-ai",
         "PolicyDocument" :   {
@@ -47,13 +48,14 @@
                 ],
                 "Resource" : "*"
             }
-          ],
-          "Roles" : [{ "Ref" : "WLDeveloper" }]
-        }
+          ]
+        },
+        "Roles" : [{ "Ref" : "WLDeveloper" }]
       }
-    },
+  },
 	"Analytics" : {
       "Type" : "AWS::IAM::Policy",
+      "Condition" : "DEV",
       "Properties" : {
         "PolicyName" : "WLDeveloper-analytics",
         "PolicyDocument" :   {
@@ -68,20 +70,21 @@
                 ],
                 "Resource" : "*"
             }
-          ],
-          "Roles" : [{ "Ref" : "WLDeveloper" }]
-        }
+          ]
+        },
+        "Roles" : [{ "Ref" : "WLDeveloper" }]
       }
-    },
+  },
 	"Apps" : {
       "Type" : "AWS::IAM::Policy",
+      "Condition" : "DEV",
       "Properties" : {
         "PolicyName" : "WLDeveloper-apps",
         "PolicyDocument" :   {
           "Version":"2012-10-17",
           "Statement" : [
             {
-			    "Sid":"AppServicesBundle",
+			          "Sid":"AppServicesBundle",
                 "Effect" : "Allow",
                 "Action": [
                   "sns:*",
@@ -92,13 +95,13 @@
                 ],
                 "Resource" : "*"
             }
-          ],
-          "Roles" : [{ "Ref" : "WLDeveloper" }]
-        }
+          ]
+        },
+        "Roles" : [{ "Ref" : "WLDeveloper" }]
       }
-    },
-    "BaselinePolicy" : {
-      "Type" : "AWS::IAM::ManagedPolicy",
+  },
+  "BaselinePolicy" : {
+      "Type" : "AWS::IAM::Policy",
       "Properties" : {
         "PolicyName" : "Baseline",
         "PolicyDocument" :   {
@@ -114,12 +117,13 @@
               "trustedadvisor:RefreshCheck"
             ],
             "Resource" : "*"
-          }],
-          "Roles" : [{"Ref" : "Administrator" }, { "Ref" : "BuAnalyst" }, { "Ref" : "Compute" }, { "Ref" : "Network" }, { "Ref" : "PDeveloper" }, { "Ref" : "Provisioning" }, { "Ref" : "TReadOnly" }, { "Ref" : "WLDeveloper"}]
-        }
-      }
-    },
-    "BusReadOnlyPolicy" : {
+          }]
+        },
+        "Roles" : [{"Ref" : "Administrator" }, { "Ref" : "BuAnalyst" }, { "Ref" : "Compute" }, { "Ref" : "Network" }, { "Ref" : "PDeveloper" }, { "Ref" : "Provisioning" }, { "Ref" : "TReadOnly" }, { "Ref" : "WLDeveloper"}]
+      },
+      "DependsOn": [ "Administrator", "BuAnalyst", "Compute", "Network", "PDeveloper", "Provisioning", "TReadOnly", "WLDeveloper" ]
+  },
+  "BusReadOnlyPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
         "PolicyName" : "BusReadOnly",
@@ -233,11 +237,12 @@
                 ],
                 "Resource": "*"
             }
-          ],
-          "Roles" : [{ "Ref" : "BuAnalyst" }]
-        }
-      }
-    },
+          ]
+        },
+        "Roles" : [{ "Ref" : "BuAnalyst" }]
+      },
+      "DependsOn": "BuAnalyst"
+  },
 	"ComputeAdminPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -251,12 +256,12 @@
               "Action": [
                 "autoscaling:*",
                 "ec2:*",
-				"elasticloadbalancing:*",
+				        "elasticloadbalancing:*",
                 "iam:DeleteServerCertificate",
                 "iam:UpdateServerCertificate",
                 "iam:UploadServerCertificate",
                 "iam:PassRole",
-				"iam:CreateServiceLinkedRole"
+			         	"iam:CreateServiceLinkedRole"
               ],
               "Resource": "*"
             },
@@ -299,10 +304,11 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "PDeveloper" }]
-      }
-    },
-    "ComputePolicy" : {
+        "Roles" : [{ "Ref" : "Compute" }, { "Ref" : "PDeveloper" }]
+      },
+      "DependsOn": [ "Compute", "PDeveloper" ]
+  },
+  "ComputePolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Condition" : "DEV",
       "Properties" : {
@@ -325,7 +331,7 @@
                 "iam:PassRole",
                 "iam:UpdateServerCertificate",
                 "iam:UploadServerCertificate",
-				"lambda:*"
+				        "lambda:*"
               ],
               "Resource": "*"
             },
@@ -370,9 +376,10 @@
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }]
       }
-    },
+  },
 	"ConfigPolicy" : {
       "Type" : "AWS::IAM::Policy",
+      "Condition" : "DEV",
       "Properties" : {
         "PolicyName" : "WLDeveloper-config",
         "PolicyDocument" : {
@@ -398,9 +405,10 @@
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }]
       }
-    },
+  },
 	"DatabasePolicy" : {
       "Type" : "AWS::IAM::Policy",
+      "Condition" : "DEV",
       "Properties" : {
         "PolicyName" : "WLDeveloper-database",
         "PolicyDocument" : {
@@ -422,9 +430,10 @@
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }]
       }
-    },
+  },
 	"DevOpsPolicy" : {
       "Type" : "AWS::IAM::Policy",
+      "Condition" : "DEV",
       "Properties" : {
         "PolicyName" : "WLDeveloper-devops",
         "PolicyDocument" : {
@@ -446,7 +455,7 @@
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }]
       }
-    },
+  },
 	"DynamoDBPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -465,8 +474,9 @@
           ]
         },
         "Roles" : [{ "Ref" : "PDeveloper" }]
-      }
-    },
+      },
+      "DependsOn": "PDeveloper"
+  },
 	"EMRPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -485,8 +495,9 @@
           ]
         },
         "Roles" : [{ "Ref" : "PDeveloper" }]
-      }
-    },
+      },
+      "DependsOn": "PDeveloper"
+  },
 	"KinesisPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -505,8 +516,9 @@
           ]
         },
         "Roles" : [{ "Ref" : "PDeveloper" }]
-      }
-    },
+      },
+      "DependsOn": "PDeveloper"
+  },
 	"KMSPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -533,8 +545,9 @@
           ]
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }, { "Ref" : "PDeveloper" }]
-      }
-    },
+      },
+      "DependsOn": [ "PDeveloper", "WLDeveloper" ]
+  },
 	"NetworkPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -542,7 +555,7 @@
         "PolicyDocument" :   {
           "Version":"2012-10-17",
           "Statement" : [{
-		    "Sid":"PrivilegedNetwork",
+		        "Sid":"PrivilegedNetwork",
             "Effect" : "Allow",
             "Action": [
               "ec2:CreateVpc",
@@ -593,8 +606,8 @@
             ],
             "Resource" : "*"
           },
-		  {
-		    "Sid":"Tagging",
+		      {
+		        "Sid":"Tagging",
             "Effect": "Allow",
             "Action": [
               "autoscaling:CreateOrUpdateTags",
@@ -615,9 +628,9 @@
               "s3:PutBucketTagging"
             ],
             "Resource": "*"
-		  },
-		  {
-		    "Sid":"ReadAll",
+		      },
+		      {
+		        "Sid":"ReadAll",
             "Effect": "Allow",
             "Action": [
               "autoscaling:Describe*",
@@ -653,11 +666,11 @@
               "swf:List*"
             ],
             "Resource": "*"
-		  }],
-          "Roles" : [{"Ref" : "Network" }]
-        }
+		      }]
+        },
+        "Roles" : [{"Ref" : "Network" }]
       }
-    },
+  },
 	"ProvisioningPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -829,9 +842,9 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles" : [{ "Ref" : "Provisioning" }]
       }
-    },
+  },
 	"RedshiftPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -850,8 +863,9 @@
           ]
         },
         "Roles" : [{ "Ref" : "PDeveloper" }]
-      }
-    },
+      },
+      "DependsOn": "PDeveloper"
+  },
 	"RDSPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -870,10 +884,12 @@
           ]
         },
         "Roles" : [{ "Ref" : "PDeveloper" }]
-      }
-    },
+      },
+      "DependsOn": "PDeveloper"
+  },
 	"SecurityPolicy" : {
       "Type" : "AWS::IAM::Policy",
+      "Condition" : "DEV",
       "Properties" : {
         "PolicyName" : "WLDeveloper-security",
         "PolicyDocument" : {
@@ -893,9 +909,10 @@
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }]
       }
-    },
+  },
 	"SnowballPolicy" : {
       "Type" : "AWS::IAM::Policy",
+      "Condition" : "DEV",
       "Properties" : {
         "PolicyName" : "WLDeveloper-snowball",
         "PolicyDocument" : {
@@ -913,7 +930,7 @@
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }]
       }
-    },
+  },
 	"StandardPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -926,10 +943,10 @@
               "Effect": "Allow",
               "Action": [
                 "aws-portal:*",
-				{ "Fn::If": [ "DEV", "aws-marketplace:*", { "Ref" : "AWS::NoValue" } ] },
+				        { "Fn::If": [ "DEV", "aws-marketplace:*", { "Ref" : "AWS::NoValue" } ] },
                 "cloudwatch:*",
-				"cloudformation:*",
-				"events:*",
+				        "cloudformation:*",
+				        "events:*",
                 "logs:*",
                 "sns:CreateTopic",
                 "sns:ListTopics",
@@ -958,10 +975,12 @@
           ]
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }, { "Ref" : "PDeveloper" }]
-      }
-    },
+      },
+      "DependsOn": [ "PDeveloper", "WLDeveloper" ]
+  },
 	"StoragePolicy" : {
       "Type" : "AWS::IAM::Policy",
+      "Condition" : "DEV",
       "Properties" : {
         "PolicyName" : "WLDeveloper-storage",
         "PolicyDocument" : {
@@ -972,7 +991,7 @@
               "Effect": "Allow",
               "Action": [
                 "s3:*",
-				"glacier:*"
+				        "glacier:*"
               ],
               "Resource": "*"
             }
@@ -980,7 +999,7 @@
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }]
       }
-    },
+  },
 	"TechReadOnlyPolicy" : {
       "Type" : "AWS::IAM::Policy",
       "Properties" : {
@@ -1049,10 +1068,11 @@
           ]
         },
         "Roles" : [{ "Ref" : "TReadOnly" }]
-      }
+      },
+      "DependsOn": "TReadOnly"
     },
     "Administrator" : {
-        "Type": "AWS::IAM::Role",
+      "Type": "AWS::IAM::Role",
         "Properties" : {
             "RoleName": { "Fn::If" : [ "AIRGAPPED", "ADMINISTRATOR", "FBIGOV-Administrator" ] },
             "AssumeRolePolicyDocument": {
@@ -1130,14 +1150,13 @@
                    ]},
                    "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
                    "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
-                  }
-                ]
+                }
+              ]
             }
         }
     },
     "PDeveloper" : {
         "Type": "AWS::IAM::Role",
-        "Condition" : "PROD",
         "Properties" : {
             "RoleName": { "Fn::If" : [ "AIRGAPPED", "PDEVELOPER", "FBIGOV-PDeveloper" ] },
             "AssumeRolePolicyDocument": {
@@ -1158,7 +1177,6 @@
     },
     "Provisioning" : {
         "Type": "AWS::IAM::Role",
-        "Condition" : "PROD",
         "Properties" : {
             "RoleName": { "Fn::If" : [ "AIRGAPPED", "PROVISIONING", "FBIGOV-Provisioning" ] },
             "AssumeRolePolicyDocument": {
