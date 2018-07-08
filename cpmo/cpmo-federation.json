@@ -120,8 +120,7 @@
           }]
         },
         "Roles" : [{"Ref" : "Administrator" }, { "Ref" : "BuAnalyst" }, { "Ref" : "Compute" }, { "Ref" : "Network" }, { "Ref" : "PDeveloper" }, { "Ref" : "Provisioning" }, { "Ref" : "Security" }, { "Ref" : "TReadOnly" }, { "Ref" : "WLDeveloper"}]
-      },
-      "DependsOn": [ "Administrator", "BuAnalyst", "Compute", "Network", "PDeveloper", "Provisioning", "Security", "TReadOnly", "WLDeveloper" ]
+      }
   },
   "BusReadOnlyPolicy" : {
       "Type" : "AWS::IAM::Policy",
@@ -240,8 +239,7 @@
           ]
         },
         "Roles" : [{ "Ref" : "BuAnalyst" }]
-      },
-      "DependsOn": "BuAnalyst"
+      }
   },
 	"ComputeAdminPolicy" : {
       "Type" : "AWS::IAM::Policy",
@@ -305,8 +303,7 @@
           ]
         },
         "Roles" : [{ "Ref" : "Compute" }, { "Ref" : "PDeveloper" }]
-      },
-      "DependsOn": [ "Compute", "PDeveloper" ]
+      }
   },
   "ComputePolicy" : {
       "Type" : "AWS::IAM::Policy",
@@ -474,8 +471,7 @@
           ]
         },
         "Roles" : [{ "Ref" : "PDeveloper" }]
-      },
-      "DependsOn": "PDeveloper"
+      }
   },
 	"EMRPolicy" : {
       "Type" : "AWS::IAM::Policy",
@@ -495,8 +491,7 @@
           ]
         },
         "Roles" : [{ "Ref" : "PDeveloper" }]
-      },
-      "DependsOn": "PDeveloper"
+      }
   },
 	"KinesisPolicy" : {
       "Type" : "AWS::IAM::Policy",
@@ -516,8 +511,7 @@
           ]
         },
         "Roles" : [{ "Ref" : "PDeveloper" }]
-      },
-      "DependsOn": "PDeveloper"
+      }
   },
 	"KMSPolicy" : {
       "Type" : "AWS::IAM::Policy",
@@ -545,8 +539,7 @@
           ]
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }, { "Ref" : "PDeveloper" }]
-      },
-      "DependsOn": [ "PDeveloper", "WLDeveloper" ]
+      }
   },
 	"NetworkPolicy" : {
       "Type" : "AWS::IAM::Policy",
@@ -863,8 +856,7 @@
           ]
         },
         "Roles" : [{ "Ref" : "PDeveloper" }]
-      },
-      "DependsOn": "PDeveloper"
+      }
   },
 	"RDSPolicy" : {
       "Type" : "AWS::IAM::Policy",
@@ -884,8 +876,7 @@
           ]
         },
         "Roles" : [{ "Ref" : "PDeveloper" }]
-      },
-      "DependsOn": "PDeveloper"
+      }
   },
 	"SecurityPolicy" : {
       "Type" : "AWS::IAM::Policy",
@@ -975,8 +966,7 @@
           ]
         },
         "Roles" : [{ "Ref" : "WLDeveloper" }, { "Ref" : "PDeveloper" }]
-      },
-      "DependsOn": [ "PDeveloper", "WLDeveloper" ]
+      }
   },
 	"StoragePolicy" : {
       "Type" : "AWS::IAM::Policy",
@@ -1068,8 +1058,7 @@
           ]
         },
         "Roles" : [{ "Ref" : "Security" }, { "Ref" : "TReadOnly" }]
-      },
-      "DependsOn": [ "Security", "TReadOnly" ]
+      }
     },
     "Administrator" : {
       "Type": "AWS::IAM::Role",
@@ -1258,5 +1247,42 @@
       }
   },
   "Outputs":{
+    "Administrator" : {
+      "Description": "Administrator Role Name",
+      "Value" : { "Ref" : "Administrator" }
+    },
+    "BuAnalyst" : {
+      "Description": "Business Analyst Role Name",
+      "Value" : { "Ref" : "BuAnalyst" }
+    },
+    "Compute" : {
+      "Description": "Compute Role Name",
+      "Value" : { "Ref" : "Compute" }
+    },
+    "Network" : {
+      "Description": "Network Role Name",
+      "Value" : { "Ref" : "Network" }
+    },
+    "PDeveloper" : {
+      "Description": "Production Developer Role Name",
+      "Value" : { "Ref" : "PDeveloper" }
+    },
+    "Provisioning" : {
+      "Description": "Provisioning Role Name",
+      "Value" : { "Ref" : "Provisioning" }
+    },
+    "Security" : {
+      "Description": "Security Role Name",
+      "Value" : { "Ref" : "Security" }
+    },
+    "TReadOnly" : {
+      "Description": "Tech Read Only Role Name",
+      "Value" : { "Ref" : "TReadOnly" }
+    },
+    "WLDeveloper" : {
+      "Description": "Workload Developer Role Name",
+      "Value" : { "Ref" : "WLDeveloper" },
+      "Condition" : "DEV"
+    },
   }
 }
