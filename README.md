@@ -1,18 +1,15 @@
 # rsi
 
-This is my GitHub for RSI
+This is my GitHub for [RSI](https://rsindustries.io)
 
-### Built with atom.io
+### Environment
 
+* [AWS](https://aws.amazon.com) - Cloud platform
 * [atom.io](https://atom.io/) - The text editor used
 
 ## Authors
 
-* **Rob Szot** - *Initial work* -
-
-### License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+* **Rob Szot**
 
 ### Acknowledgments
 
