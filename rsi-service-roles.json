@@ -1,0 +1,178 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Creates service roles for an account",
+  "Parameters": {
+    "EC2RoleName" : {
+      "Type": "String",
+      "Description": "Name of the EC2 service role",
+      "Default": "RSI-EC2Role"
+    },
+    "CfnRoleName" : {
+      "Type": "String",
+      "Description": "Name of the CloudFormation service role",
+      "Default": "RSI-CloudFormationRole"
+    },
+    "LambdaRoleName" : {
+      "Type": "String",
+      "Description": "Name of the Lambda service role",
+      "Default": "RSI-LambdaRole"
+    },
+    "ConfigRoleName" : {
+      "Type": "String",
+      "Description": "Name of the Config service role",
+      "Default": "RSI-ConfigRole"
+    }
+  },
+  "Resources": {
+    "EC2Role" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+        "RoleName": { "Ref" : "EC2RoleName" },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [ {
+            "Effect": "Allow",
+            "Principal": { "Service": "ec2.amazonaws.com" },
+            "Action": "sts:AssumeRole"
+          } ]
+        },
+        "Policies": [
+          {
+            "PolicyName" : "Administrator",
+            "PolicyDocument" : {
+              "Version": "2012-10-17",
+              "Id": "Admin",
+              "Statement": [
+                {
+                  "Sid": "AdministratorAccess",
+                  "Effect": "Allow",
+                  "Action": "*",
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "EC2InstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "InstanceProfileName": "RSI-EC2Role",
+        "Path": "/",
+        "Roles": [ { "Ref": "EC2Role" } ]
+      }
+    },
+    "CfnRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+        "RoleName": { "Ref" : "CfnRoleName" },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [ {
+            "Effect": "Allow",
+            "Principal": { "Service": "cloudformation.amazonaws.com" },
+            "Action": "sts:AssumeRole"
+          } ]
+        },
+        "Policies" : [
+          {
+            "PolicyName" : "Administrator",
+            "PolicyDocument" : {
+              "Version": "2012-10-17",
+              "Id": "Admin",
+              "Statement": [
+                {
+                  "Sid": "AdministratorAccess",
+                  "Effect": "Allow",
+                  "Action": "*",
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "LambdaRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+        "RoleName": { "Ref" : "LambdaRoleName" },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [ {
+            "Effect": "Allow",
+            "Principal": { "Service": "lambda.amazonaws.com" },
+            "Action": "sts:AssumeRole"
+          } ]
+        },
+        "Policies": [
+          {
+            "PolicyName" : "Administrator",
+            "PolicyDocument" : {
+              "Version": "2012-10-17",
+              "Id": "Admin",
+              "Statement": [
+                {
+                  "Sid": "AdministratorAccess",
+                  "Effect": "Allow",
+                  "Action": "*",
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "ConfigRole" : {
+      "Type": "AWS::IAM::Role",
+      "Properties" : {
+        "RoleName": { "Ref" : "ConfigRoleName" },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [ {
+            "Effect": "Allow",
+            "Principal": { "Service": "config.amazonaws.com" },
+            "Action": "sts:AssumeRole"
+          } ]
+        },
+        "Policies": [
+          {
+            "PolicyName" : "Administrator",
+            "PolicyDocument" : {
+              "Version": "2012-10-17",
+              "Id": "Admin",
+              "Statement": [
+                {
+                  "Sid": "AdministratorAccess",
+                  "Effect": "Allow",
+                  "Action": "*",
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs":{
+    "EC2RoleName" : {
+      "Description": "EC2 Role ARN",
+      "Value" : {"Fn::GetAtt" : ["EC2Role", "Arn"] }
+    },
+    "CfnRoleName" : {
+      "Description": "CloudFormation Role ARN",
+      "Value" : {"Fn::GetAtt" : ["CfnRole", "Arn"] }
+    },
+    "LambdaRoleName" : {
+      "Description": "Lambda Role ARN",
+      "Value" : {"Fn::GetAtt" : ["LambdaRole", "Arn"] }
+    },
+    "ConfigRoleName" : {
+      "Description": "Config Role ARN",
+      "Value" : {"Fn::GetAtt" : ["ConfigRole", "Arn"] }
+    }
+  }
+}
