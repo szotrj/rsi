@@ -907,7 +907,7 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles" : [{ "Ref" : "Security" }, { "Ref" : "WLDeveloper" }]
       }
   },
 	"SnowballPolicy" : {
@@ -1067,9 +1067,9 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "TReadOnly" }]
+        "Roles" : [{ "Ref" : "Security" }, { "Ref" : "TReadOnly" }]
       },
-      "DependsOn": "TReadOnly"
+      "DependsOn": [ "Security", "TReadOnly" ]
     },
     "Administrator" : {
       "Type": "AWS::IAM::Role",
@@ -1179,6 +1179,26 @@
         "Type": "AWS::IAM::Role",
         "Properties" : {
             "RoleName": { "Fn::If" : [ "AIRGAPPED", "PROVISIONING", "FBIGOV-Provisioning" ] },
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": { "Fn::If" : [ "AIRGAPPED",
+                      { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
+                      { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
+                  ]},
+                  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+                  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+                }
+              ]
+            }
+        }
+    },
+    "Security" : {
+        "Type": "AWS::IAM::Role",
+        "Properties" : {
+            "RoleName": { "Fn::If" : [ "AIRGAPPED", "SECURITY", "FBIGOV-Security" ] },
             "AssumeRolePolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
