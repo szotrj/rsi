@@ -1248,5 +1248,42 @@
       }
   },
   "Outputs":{
+    "Administrator" : {
+      "Description" : "Administrator role name",
+      "Value" : { "Ref" : "Administrator" }
+    },
+    "BuAnalyst" : {
+      "Description" : "Business Analyst role name",
+      "Value" : { "Ref" : "BuAnalyst" }
+    },
+    "Compute" : {
+      "Description" : "Compute Admin role name",
+      "Value" : { "Ref" : "Compute" }
+    },
+    "Network" : {
+      "Description" : "Network Admin role name",
+      "Value" : { "Ref" : "Network" }
+    },
+    "PDeveloper" : {
+      "Description" : "Production Developer role name",
+      "Value" : { "Ref" : "PDeveloper" }
+    },
+    "Provisioning" : {
+      "Description" : "Provisioning role name",
+      "Value" : { "Ref" : "Provisioning" }
+    },
+    "Security" : {
+      "Description" : "Security role name",
+      "Value" : { "Ref" : "Security" }
+    },
+    "TReadOnly" : {
+      "Description" : "Tech Read Only role name",
+      "Value" : { "Ref" : "TReadOnly" }
+    },
+    "WLDeveloper" : {
+      "Description" : "Workload Developer role name",
+      "Value" : { "Ref" : "WLDeveloper" },
+      "Condition" : "DEV"
+    }
   }
 }
