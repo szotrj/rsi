@@ -15,99 +15,99 @@
   },
   "Mappings": {
     "RegionMap": {
-      "us-east-1":      { "ARN" : "aws" },
-      "us-east-2":      { "ARN" : "aws" },
-      "us-west-1":      { "ARN" : "aws" },
-      "us-west-2":      { "ARN" : "aws" },
-      "us-gov-west-1":  { "ARN" : "aws-us-gov" },
-      "us-isob-east-1": { "ARN" : "aws-iso-b" },
-      "us-iso-east-1":  { "ARN" : "aws-iso" }
+      "us-east-1":      { "ARN": "aws", "SAML": "FBIGOV-ADFS" },
+      "us-east-2":      { "ARN": "aws", "SAML": "FBIGOV-ADFS" },
+      "us-west-1":      { "ARN": "aws", "SAML": "FBIGOV-ADFS" },
+      "us-west-2":      { "ARN": "aws", "SAML": "FBIGOV-ADFS" },
+      "us-gov-west-1":  { "ARN": "aws-us-gov", "SAML": "FBIGOV-ADFS" },
+      "us-isob-east-1": { "ARN": "aws-iso-b", "SAML": "GEOAxIS" },
+      "us-iso-east-1":  { "ARN": "aws-iso" }
     }
   },
   "Conditions": {
-    "DEV"       : { "Fn::Equals" : [{"Ref" : "EnvType"}, "DEV" ]},
-    "PROD"      : { "Fn::Equals" : [{"Ref" : "EnvType"}, "PROD" ]},
-    "AIRGAPPED" : { "Fn::Or" : [ { "Fn::Equals" : [{"Ref" : "AWS::Region"}, "us-isob-east-1"]}, { "Fn::Equals" : [{"Ref" : "AWS::Region"}, "us-iso-east-1"]} ] },
-    "GOVCLOUD"  : { "Fn::Equals" : [{ "Ref" : "AWS::Region"}, "us-gov-west-1" ]}
+    "DEV"       : { "Fn::Equals": [{"Ref": "EnvType"}, "DEV" ]},
+    "PROD"      : { "Fn::Equals": [{"Ref": "EnvType"}, "PROD" ]},
+    "C2S"       : { "Fn::Equals": [{"Ref": "AWS::Region"}, "us-iso-east-1" ]},
+    "GOVCLOUD"  : { "Fn::Equals": [{"Ref": "AWS::Region"}, "us-gov-west-1" ]}
   },
-  "Resources" : {
-    "AIPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Condition" : "DEV",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-ai",
-        "PolicyDocument" :   {
+  "Resources": {
+    "AIPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "DEV",
+      "Properties": {
+        "PolicyName": "WLDeveloper-ai",
+        "PolicyDocument": {
           "Version":"2012-10-17",
-          "Statement" : [
+          "Statement": [
             {
-                "Effect" : "Allow",
-                "Action": [
-                    "polly:*",
-                    "rekognition:*",
-                    "translate:*"
-                ],
-                "Resource" : "*"
+              "Effect": "Allow",
+              "Action": [
+                "polly:*",
+                "rekognition:*",
+                "translate:*"
+              ],
+              "Resource": "*"
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles": [{ "Ref": "WLDeveloper" }]
       }
-  },
-	"Analytics" : {
-      "Type" : "AWS::IAM::Policy",
-      "Condition" : "DEV",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-analytics",
-        "PolicyDocument" :   {
+    },
+    "AnalyticsPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "DEV",
+      "Properties": {
+        "PolicyName": "WLDeveloper-analytics",
+        "PolicyDocument":   {
           "Version":"2012-10-17",
-          "Statement" : [
+          "Statement": [
             {
-                "Effect" : "Allow",
-                "Action": [
-                  "elasticmapreduce:*",
-                  "es:*",
-                  "kinesis:*"
-                ],
-                "Resource" : "*"
+              "Effect": "Allow",
+              "Action": [
+                "elasticmapreduce:*",
+                "es:*",
+                "kinesis:*"
+              ],
+              "Resource": "*"
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles": [{ "Ref": "WLDeveloper" }]
       }
-  },
-	"Apps" : {
-      "Type" : "AWS::IAM::Policy",
-      "Condition" : "DEV",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-apps",
-        "PolicyDocument" :   {
+    },
+    "AppsPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "DEV",
+      "Properties": {
+        "PolicyName": "WLDeveloper-apps",
+        "PolicyDocument": {
           "Version":"2012-10-17",
-          "Statement" : [
+          "Statement": [
             {
-			          "Sid":"AppServicesBundle",
-                "Effect" : "Allow",
-                "Action": [
-                  "sns:*",
-                  "sqs:*",
-                  "swf:*",
-                  "ses:*",
-                  "apigateway:*"
-                ],
-                "Resource" : "*"
+              "Sid":"AppServicesBundle",
+              "Effect": "Allow",
+              "Action": [
+                "sns:*",
+                "sqs:*",
+                "swf:*",
+                "ses:*",
+                "apigateway:*"
+              ],
+              "Resource": "*"
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles": [{ "Ref": "WLDeveloper" }]
       }
-  },
-  "BaselinePolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "Baseline",
-        "PolicyDocument" :   {
+    },
+    "BaselinePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "Baseline",
+        "PolicyDocument": {
           "Version":"2012-10-17",
-          "Statement" : [{
-            "Effect" : "Allow",
+          "Statement": [{
+            "Effect": "Allow",
             "Action": [
               "health:*",
               "sts:DecodeAuthorizationMessage",
@@ -116,137 +116,165 @@
               "trustedadvisor:Describe*",
               "trustedadvisor:RefreshCheck"
             ],
-            "Resource" : "*"
+            "Resource": "*"
+          },
+		  {
+            "Sid": "BaselineDeny",
+            "Effect": "Deny",
+            "Action": [
+              "cloudformation:*",
+              "iam:Add*",
+              "iam:Attach*",
+              "iam:Detach*",
+              "iam:Create*",
+              "iam:Update*",
+              "iam:Delete*",
+              "iam:Put*",
+              "iam:Remove*"
+            ],
+            "Resource": [
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:role/FBIGOV-*" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:role/ADMINISTRATOR" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:role/BUANALYST" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:role/COMPUTE" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:role/NETWORK" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:role/PDEVELOPER" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:role/PROVISIONING" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:role/SECURITY" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:role/TREADONLY" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:role/WLDEVELOPER" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::*:saml-provider/*" ] ] },
+              { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":cloudformation:*:", {"Ref": "AWS::AccountId"}, ":stack/CPMO*" ] ] }
+            ]
           }]
         },
-        "Roles" : [{"Ref" : "Administrator" }, { "Ref" : "BuAnalyst" }, { "Ref" : "Compute" }, { "Ref" : "Network" }, { "Ref" : "PDeveloper" }, { "Ref" : "Provisioning" },
-          { "Ref" : "Security" }, { "Ref" : "TReadOnly" }, { "Fn::If" : [ "DEV", { "Ref" : "WLDeveloper"}, { "Ref" : "AWS::NoValue"}]}]
+        "Roles": [{"Ref": "Administrator" }, { "Ref": "BuAnalyst" }, { "Ref": "Compute" }, { "Ref": "Network" }, { "Ref": "PDeveloper" }, { "Ref": "Provisioning" }, { "Ref": "Security" }, { "Ref": "TReadOnly" }, { "Fn::If": [ "DEV", { "Ref": "WLDeveloper"}, { "Ref": "AWS::NoValue"}]}]
       }
-  },
-  "BusReadOnlyPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "BusReadOnly",
-        "PolicyDocument" :   {
+    },
+    "BusReadOnlyPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "BusReadOnly",
+        "PolicyDocument": {
           "Version":"2012-10-17",
-          "Statement" : [
+          "Statement": [
             {
-                "Effect" : "Allow",
-                "Action": [
-                    "aws-portal:*Billing",
-                    "awsbillingconsole:*Billing",
-                    "aws-portal:*Usage",
-                    "awsbillingconsole:*Usage",
-                    "aws-portal:*PaymentMethods",
-                    "awsbillingconsole:*PaymentMethods",
-                    "budgets:ViewBudget",
-                    "budgets:ModifyBudget",
-                    "cur:*",
-                    "autoscaling:DescribeAccountLimits",
-                    "autoscaling:DescribeAutoScalingGroups",
-                    "autoscaling:DescribeLaunchConfigurations",
-                    "cloudformation:DescribeAccountLimits",
-                    "cloudformation:DescribeStacks",
-                    "cloudformation:ListStacks",
-                    "cloudtrail:DescribeTrails",
-                    "cloudtrail:GetTrailStatus",
-                    "cloudwatch:Describe*",
-                    "cloudwatch:Get*",
-                    "cloudwatch:List*",
-                    "dynamodb:DescribeTable",
-                    "dynamodb:ListTables",
-                    "ec2:DescribeAddresses",
-                    "ec2:DescribeReservedInstances",
-                    "ec2:DescribeInstances",
-                    "ec2:DescribeVpcs",
-                    "ec2:DescribeInternetGateways",
-                    "ec2:DescribeImages",
-                    "ec2:DescribeVolumes",
-                    "ec2:DescribeSecurityGroups",
-                    "ec2:DescribeReservedInstancesOfferings",
-                    "ec2:DescribeSnapshots",
-                    "ec2:DescribeVpnConnections",
-                    "ec2:DescribeVpnGateways",
-                    "elasticloadbalancing:DescribeInstanceHealth",
-                    "elasticloadbalancing:DescribeLoadBalancerAttributes",
-                    "elasticloadbalancing:DescribeLoadBalancerPolicies",
-                    "elasticloadbalancing:DescribeLoadBalancerPolicyTypes",
-                    "elasticloadbalancing:DescribeLoadBalancers",
-                    "iam:GenerateCredentialReport",
-                    "iam:GetAccountPasswordPolicy",
-                    "iam:GetAccountSummary",
-                    "iam:GetCredentialReport",
-                    "iam:GetServerCertificate",
-                    "iam:ListServerCertificates",
-                    "kinesis:DescribeLimits",
-                    "organizations:*",
-                    "rds:DescribeAccountAttributes",
-                    "rds:DescribeDBClusters",
-                    "rds:DescribeDBEngineVersions",
-                    "rds:DescribeDBInstances",
-                    "rds:DescribeDBParameterGroups",
-                    "rds:DescribeDBParameters",
-                    "rds:DescribeDBSecurityGroups",
-                    "rds:DescribeDBSnapshots",
-                    "rds:DescribeDBSubnetGroups",
-                    "rds:DescribeEngineDefaultParameters",
-                    "rds:DescribeEvents",
-                    "rds:DescribeOptionGroupOptions",
-                    "rds:DescribeOptionGroups",
-                    "rds:DescribeOrderableDBInstanceOptions",
-                    "rds:DescribeReservedDBInstances",
-                    "rds:DescribeReservedDBInstancesOfferings",
-                    "rds:ListTagsForResource",
-                    "redshift:DescribeClusters",
-                    "redshift:DescribeReservedNodeOfferings",
-                    "redshift:DescribeReservedNodes",
-                    "s3:GetBucketAcl",
-                    "s3:GetBucketPolicy",
-                    "s3:GetBucketLocation",
-                    "s3:GetBucketLogging",
-                    "s3:GetBucketVersioning",
-                    "s3:ListBucket",
-                    "s3:ListObjects",
-                    "s3:ListAllMyBuckets",
-                    "sqs:ListQueues",
-                    "cloudwatch:GetMetricStatistics",
-                    "aws-portal:View*",
-                    "aws-portal:ViewUsage"
-                ],
-                "Resource" : "*"
+              "Effect": "Allow",
+              "Action": [
+                "aws-portal:*Billing",
+                "awsbillingconsole:*Billing",
+                "aws-portal:*Usage",
+                "awsbillingconsole:*Usage",
+                "aws-portal:*PaymentMethods",
+                "awsbillingconsole:*PaymentMethods",
+                "budgets:ViewBudget",
+                "budgets:ModifyBudget",
+                "cur:*",
+                "autoscaling:DescribeAccountLimits",
+                "autoscaling:DescribeAutoScalingGroups",
+                "autoscaling:DescribeLaunchConfigurations",
+                "cloudformation:DescribeAccountLimits",
+                "cloudformation:DescribeStacks",
+                "cloudformation:ListStacks",
+                "cloudtrail:DescribeTrails",
+                "cloudtrail:GetTrailStatus",
+                "cloudwatch:Describe*",
+                "cloudwatch:Get*",
+                "cloudwatch:List*",
+                "dynamodb:DescribeTable",
+                "dynamodb:ListTables",
+                "ec2:DescribeAddresses",
+                "ec2:DescribeReservedInstances",
+                "ec2:DescribeInstances",
+                "ec2:DescribeVpcs",
+                "ec2:DescribeInternetGateways",
+                "ec2:DescribeImages",
+                "ec2:DescribeVolumes",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeReservedInstancesOfferings",
+                "ec2:DescribeSnapshots",
+                "ec2:DescribeVpnConnections",
+                "ec2:DescribeVpnGateways",
+                "elasticloadbalancing:DescribeInstanceHealth",
+                "elasticloadbalancing:DescribeLoadBalancerAttributes",
+                "elasticloadbalancing:DescribeLoadBalancerPolicies",
+                "elasticloadbalancing:DescribeLoadBalancerPolicyTypes",
+                "elasticloadbalancing:DescribeLoadBalancers",
+                "iam:GenerateCredentialReport",
+                "iam:GetAccountPasswordPolicy",
+                "iam:GetAccountSummary",
+                "iam:GetCredentialReport",
+                "iam:GetServerCertificate",
+                "iam:ListServerCertificates",
+                "kinesis:DescribeLimits",
+                "organizations:*",
+                "rds:DescribeAccountAttributes",
+                "rds:DescribeDBClusters",
+                "rds:DescribeDBEngineVersions",
+                "rds:DescribeDBInstances",
+                "rds:DescribeDBParameterGroups",
+                "rds:DescribeDBParameters",
+                "rds:DescribeDBSecurityGroups",
+                "rds:DescribeDBSnapshots",
+                "rds:DescribeDBSubnetGroups",
+                "rds:DescribeEngineDefaultParameters",
+                "rds:DescribeEvents",
+                "rds:DescribeOptionGroupOptions",
+                "rds:DescribeOptionGroups",
+                "rds:DescribeOrderableDBInstanceOptions",
+                "rds:DescribeReservedDBInstances",
+                "rds:DescribeReservedDBInstancesOfferings",
+                "rds:ListTagsForResource",
+                "redshift:DescribeClusters",
+                "redshift:DescribeReservedNodeOfferings",
+                "redshift:DescribeReservedNodes",
+                "s3:GetBucketAcl",
+                "s3:GetBucketPolicy",
+                "s3:GetBucketLocation",
+                "s3:GetBucketLogging",
+                "s3:GetBucketVersioning",
+                "s3:ListBucket",
+                "s3:ListObjects",
+                "s3:ListAllMyBuckets",
+                "sqs:ListQueues",
+                "cloudwatch:GetMetricStatistics",
+                "aws-portal:View*",
+                "aws-portal:ViewUsage"
+              ],
+              "Resource": "*"
             },
             {
-                "Effect": "Deny",
-                "Action": [
-                    "aws-portal:*Account",
-                    "organizations:AttachPolicy",
-                    "organizations:CreateAccount",
-                    "organizations:CreateOrganization",
-                    "organizations:CreatePolicy",
-                    "organizations:DeleteOrganization",
-                    "organizations:DeleteOrganizationalUnit",
-                    "organizations:DeletePolicy",
-                    "organizations:DetachPolicy",
-                    "organizations:DisablePolicyType",
-                    "organizations:EnablePolicyType",
-                    "organizations:MoveAccount",
-                    "organizations:RemoveAccountFromOrganization",
-                    "organizations:UpdatePolicy",
-                    "organizations:UpdateOrganizationalUnit",
-                    "organizations:UpdatePolicy"
-                ],
-                "Resource": "*"
+              "Effect": "Deny",
+              "Action": [
+                "aws-portal:*Account",
+                "organizations:AttachPolicy",
+                "organizations:CreateAccount",
+                "organizations:CreateOrganization",
+                "organizations:CreatePolicy",
+                "organizations:DeleteOrganization",
+                "organizations:DeleteOrganizationalUnit",
+                "organizations:DeletePolicy",
+                "organizations:DetachPolicy",
+                "organizations:DisablePolicyType",
+                "organizations:EnablePolicyType",
+                "organizations:MoveAccount",
+                "organizations:RemoveAccountFromOrganization",
+                "organizations:UpdatePolicy",
+                "organizations:UpdateOrganizationalUnit",
+                "organizations:UpdatePolicy"
+              ],
+              "Resource": "*"
             }
           ]
         },
-        "Roles" : [{ "Ref" : "BuAnalyst" }]
+        "Roles": [{ "Ref": "BuAnalyst" }]
       }
-  },
-	"ComputeAdminPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "Compute-ComputeAdmin",
-        "PolicyDocument" : {
+    },
+    "ComputeAdminPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "Compute-ComputeAdmin",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -255,12 +283,12 @@
               "Action": [
                 "autoscaling:*",
                 "ec2:*",
-				        "elasticloadbalancing:*",
+                "elasticloadbalancing:*",
                 "iam:DeleteServerCertificate",
                 "iam:UpdateServerCertificate",
                 "iam:UploadServerCertificate",
                 "iam:PassRole",
-			         	"iam:CreateServiceLinkedRole"
+                "iam:CreateServiceLinkedRole"
               ],
               "Resource": "*"
             },
@@ -303,15 +331,15 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "Compute" }, { "Ref" : "PDeveloper" }]
+        "Roles": [{ "Ref": "Compute" }, { "Ref": "PDeveloper" }]
       }
-  },
-  "ComputePolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Condition" : "DEV",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-compute",
-        "PolicyDocument" : {
+    },
+    "ComputePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "DEV",
+      "Properties": {
+        "PolicyName": "WLDeveloper-compute",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -329,7 +357,7 @@
                 "iam:PassRole",
                 "iam:UpdateServerCertificate",
                 "iam:UploadServerCertificate",
-				        "lambda:*"
+                "lambda:*"
               ],
               "Resource": "*"
             },
@@ -372,15 +400,15 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles": [{ "Ref": "WLDeveloper" }]
       }
-  },
-	"ConfigPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Condition" : "DEV",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-config",
-        "PolicyDocument" : {
+    },
+    "ConfigPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "DEV",
+      "Properties": {
+        "PolicyName": "WLDeveloper-config",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -401,15 +429,15 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles": [{ "Ref": "WLDeveloper" }]
       }
-  },
-	"DatabasePolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Condition" : "DEV",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-database",
-        "PolicyDocument" : {
+    },
+    "DatabasePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "DEV",
+      "Properties": {
+        "PolicyName": "WLDeveloper-database",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -426,15 +454,15 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles": [{ "Ref": "WLDeveloper" }]
       }
-  },
-	"DevOpsPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Condition" : "DEV",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-devops",
-        "PolicyDocument" : {
+    },
+    "DevOpsPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "DEV",
+      "Properties": {
+        "PolicyName": "WLDeveloper-devops",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -451,14 +479,14 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles": [{ "Ref": "WLDeveloper" }]
       }
-  },
-	"DynamoDBPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "PDeveloper-dynamodb",
-        "PolicyDocument" : {
+    },
+    "DynamoDBPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "PDeveloper-dynamodb",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -471,14 +499,14 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "PDeveloper" }]
+        "Roles": [{ "Ref": "PDeveloper" }]
       }
-  },
-	"EMRPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "PDeveloper-emr",
-        "PolicyDocument" : {
+    },
+    "EMRPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "PDeveloper-emr",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -491,14 +519,14 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "PDeveloper" }]
+        "Roles": [{ "Ref": "PDeveloper" }]
       }
-  },
-	"KinesisPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "PDeveloper-kinesis",
-        "PolicyDocument" : {
+    },
+    "KinesisPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "PDeveloper-kinesis",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -511,14 +539,14 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "PDeveloper" }]
+        "Roles": [{ "Ref": "PDeveloper" }]
       }
-  },
-	"KMSPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-kms",
-        "PolicyDocument" : {
+    },
+    "KMSPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "WLDeveloper-kms",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -539,18 +567,18 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "PDeveloper" }, { "Fn::If" : [ "DEV", { "Ref" : "WLDeveloper"}, { "Ref" : "AWS::NoValue"}]}]
+        "Roles": [{ "Ref": "PDeveloper" }, { "Fn::If": [ "DEV", { "Ref": "WLDeveloper"}, { "Ref": "AWS::NoValue"}]}]
       }
-  },
-	"NetworkPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "NetAdmin-VPCAdmin",
-        "PolicyDocument" :   {
+    },
+    "NetworkPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "NetAdmin-VPCAdmin",
+        "PolicyDocument": {
           "Version":"2012-10-17",
-          "Statement" : [{
-		        "Sid":"PrivilegedNetwork",
-            "Effect" : "Allow",
+          "Statement": [{
+            "Sid":"PrivilegedNetwork",
+            "Effect": "Allow",
             "Action": [
               "ec2:CreateVpc",
               "ec2:DeleteVpc",
@@ -598,10 +626,10 @@
               "ec2:DeleteSubnet",
               "directconnect:*"
             ],
-            "Resource" : "*"
+            "Resource": "*"
           },
-		      {
-		        "Sid":"Tagging",
+          {
+            "Sid":"Tagging",
             "Effect": "Allow",
             "Action": [
               "autoscaling:CreateOrUpdateTags",
@@ -622,9 +650,9 @@
               "s3:PutBucketTagging"
             ],
             "Resource": "*"
-		      },
-		      {
-		        "Sid":"ReadAll",
+          },
+          {
+            "Sid":"ReadAll",
             "Effect": "Allow",
             "Action": [
               "autoscaling:Describe*",
@@ -660,16 +688,16 @@
               "swf:List*"
             ],
             "Resource": "*"
-		      }]
+          }]
         },
-        "Roles" : [{"Ref" : "Network" }]
+        "Roles": [{"Ref": "Network" }]
       }
-  },
-	"ProvisioningPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "Provisioning",
-        "PolicyDocument" : {
+    },
+    "ProvisioningPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "Provisioning",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -760,6 +788,7 @@
                 "iam:DeleteInstanceProfile",
                 "iam:DeleteLoginProfile",
                 "iam:DeletePolicyVersion",
+				"iam:DeleteRole",
                 "iam:DeleteSigningCertificate",
                 "iam:DeleteUser",
                 "iam:DeleteUserPolicy",
@@ -819,7 +848,7 @@
               "Resource": "*"
             },
             {
-              "Sid": "ProvisioningDeny",
+              "Sid": "ProvisioningDeny2",
               "Effect": "Deny",
               "Action": [
                 "cloudtrail:DeleteTrail",
@@ -836,14 +865,14 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "Provisioning" }]
+        "Roles": [{ "Ref": "Provisioning" }]
       }
-  },
-	"RedshiftPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "PDeveloper-redshift",
-        "PolicyDocument" : {
+    },
+    "RedshiftPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "PDeveloper-redshift",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -856,14 +885,14 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "PDeveloper" }]
+        "Roles": [{ "Ref": "PDeveloper" }]
       }
-  },
-	"RDSPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "PDeveloper-rds",
-        "PolicyDocument" : {
+    },
+    "RDSPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "PDeveloper-rds",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -876,15 +905,15 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "PDeveloper" }]
+        "Roles": [{ "Ref": "PDeveloper" }]
       }
-  },
-	"SecurityPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Condition" : "DEV",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-security",
-        "PolicyDocument" : {
+    },
+    "SecurityPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "DEV",
+      "Properties": {
+        "PolicyName": "WLDeveloper-security",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -899,15 +928,15 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "Security" }, { "Fn::If" : [ "DEV", { "Ref" : "WLDeveloper"}, { "Ref" : "AWS::NoValue"}]}]
+        "Roles": [{ "Ref": "Security" }, { "Fn::If": [ "DEV", { "Ref": "WLDeveloper"}, { "Ref": "AWS::NoValue"}]}]
       }
-  },
-	"SnowballPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Condition" : "DEV",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-snowball",
-        "PolicyDocument" : {
+    },
+    "SnowballPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "DEV",
+      "Properties": {
+        "PolicyName": "WLDeveloper-snowball",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -920,14 +949,14 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles": [{ "Ref": "WLDeveloper" }]
       }
-  },
-	"StandardPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-standard",
-        "PolicyDocument" : {
+    },
+    "StandardPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "WLDeveloper-standard",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -935,10 +964,10 @@
               "Effect": "Allow",
               "Action": [
                 "aws-portal:*",
-				        { "Fn::If": [ "DEV", "aws-marketplace:*", { "Ref" : "AWS::NoValue" } ] },
+                { "Fn::If": [ "DEV", "aws-marketplace:*", { "Ref": "AWS::NoValue" } ] },
                 "cloudwatch:*",
-				        "cloudformation:*",
-				        "events:*",
+                "cloudformation:*",
+                "events:*",
                 "logs:*",
                 "sns:CreateTopic",
                 "sns:ListTopics",
@@ -966,15 +995,15 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "PDeveloper" }, { "Fn::If" : [ "DEV", { "Ref" : "WLDeveloper"}, { "Ref" : "AWS::NoValue"}]}]
+        "Roles": [{ "Ref": "PDeveloper" }, { "Fn::If": [ "DEV", { "Ref": "WLDeveloper"}, { "Ref": "AWS::NoValue"}]}]
       }
-  },
-	"StoragePolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Condition" : "DEV",
-      "Properties" : {
-        "PolicyName" : "WLDeveloper-storage",
-        "PolicyDocument" : {
+    },
+    "StoragePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "DEV",
+      "Properties": {
+        "PolicyName": "WLDeveloper-storage",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -982,20 +1011,20 @@
               "Effect": "Allow",
               "Action": [
                 "s3:*",
-				        "glacier:*"
+                "glacier:*"
               ],
               "Resource": "*"
             }
           ]
         },
-        "Roles" : [{ "Ref" : "WLDeveloper" }]
+        "Roles": [{ "Ref": "WLDeveloper" }]
       }
-  },
-	"TechReadOnlyPolicy" : {
-      "Type" : "AWS::IAM::Policy",
-      "Properties" : {
-        "PolicyName" : "TechReadOnly-ReadOnly",
-        "PolicyDocument" : {
+    },
+    "TechReadOnlyPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "TechReadOnly-ReadOnly",
+        "PolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [
             {
@@ -1058,232 +1087,195 @@
             }
           ]
         },
-        "Roles" : [{ "Ref" : "Security" }, { "Ref" : "TReadOnly" }]
+        "Roles": [{ "Ref": "Security" }, { "Ref": "TReadOnly" }]
       }
     },
-    "Administrator" : {
+    "Administrator": {
       "Type": "AWS::IAM::Role",
-        "Properties" : {
-            "RoleName": { "Fn::If" : [ "AIRGAPPED", "ADMINISTRATOR", "FBIGOV-Administrator" ] },
-            "AssumeRolePolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": { "Fn::If" : [ "AIRGAPPED",
-                        { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-                        { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-                  ]},
-                  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-                  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
-                }
-              ]
-            },
-            "ManagedPolicyArns": [
-                  { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::aws:policy/PowerUserAccess" ] ] },
-                  { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::aws:policy/job-function/Billing" ] ] }
-            ]
-        }
-    },
-    "BuAnalyst" : {
-        "Type": "AWS::IAM::Role",
-        "Properties" : {
-            "RoleName": { "Fn::If" : [ "AIRGAPPED", "BUANALYST", "FBIGOV-BuAnalyst" ] },
-            "AssumeRolePolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": { "Fn::If" : [ "AIRGAPPED",
-                      { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-                      { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-                  ]},
-                  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-                  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
-                }
-              ]
+      "Properties": {
+        "RoleName": { "Fn::If": [ "C2S", "ADMINISTRATOR", "FBIGOV-Administrator" ] },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Fn::If": [ "C2S",
+                { "AWS": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "CAPAccountId" }, ":root" ] ] } },
+                { "Federated": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "AWS::AccountId" }, ":saml-provider/", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "SAML"]} ] ] } }
+              ]},
+              "Action": { "Fn::If": [ "C2S", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+              "Condition": { "Fn::If": [ "C2S", { "Ref": "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If": [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
             }
-        }
-    },
-    "Compute" : {
-        "Type": "AWS::IAM::Role",
-        "Properties" : {
-            "RoleName": { "Fn::If" : [ "AIRGAPPED", "COMPUTE", "FBIGOV-Compute" ] },
-            "AssumeRolePolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": { "Fn::If" : [ "AIRGAPPED",
-                      { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-                      { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-                  ]},
-                  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-                  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
-                }
-              ]
-            }
-        }
-    },
-    "Network" : {
-        "Type": "AWS::IAM::Role",
-        "Properties" : {
-            "RoleName": { "Fn::If" : [ "AIRGAPPED", "NETWORK", "FBIGOV-Network" ] },
-            "AssumeRolePolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": { "Fn::If" : [ "AIRGAPPED",
-                      { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-                      { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-                   ]},
-                   "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-                   "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
-                }
-              ]
-            }
-        }
-    },
-    "PDeveloper" : {
-        "Type": "AWS::IAM::Role",
-        "Properties" : {
-            "RoleName": { "Fn::If" : [ "AIRGAPPED", "PDEVELOPER", "FBIGOV-PDeveloper" ] },
-            "AssumeRolePolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": { "Fn::If" : [ "AIRGAPPED",
-                      { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-                      { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-                  ]},
-                  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-                  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
-                }
-              ]
-            }
-        }
-    },
-    "Provisioning" : {
-        "Type": "AWS::IAM::Role",
-        "Properties" : {
-            "RoleName": { "Fn::If" : [ "AIRGAPPED", "PROVISIONING", "FBIGOV-Provisioning" ] },
-            "AssumeRolePolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": { "Fn::If" : [ "AIRGAPPED",
-                      { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-                      { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-                  ]},
-                  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-                  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
-                }
-              ]
-            }
-        }
-    },
-    "Security" : {
-        "Type": "AWS::IAM::Role",
-        "Properties" : {
-            "RoleName": { "Fn::If" : [ "AIRGAPPED", "SECURITY", "FBIGOV-Security" ] },
-            "AssumeRolePolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": { "Fn::If" : [ "AIRGAPPED",
-                      { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-                      { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-                  ]},
-                  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-                  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
-                }
-              ]
-            }
-        }
-    },
-    "TReadOnly" : {
-        "Type": "AWS::IAM::Role",
-        "Properties" : {
-            "RoleName": { "Fn::If" : [ "AIRGAPPED", "TREADONLY", "FBIGOV-TReadOnly" ] },
-            "AssumeRolePolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": { "Fn::If" : [ "AIRGAPPED",
-                      { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-                      { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-                  ]},
-                  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-                  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
-                }
-              ]
-            }
-        }
-    },
-    "WLDeveloper" : {
-        "Type": "AWS::IAM::Role",
-        "Condition" : "DEV",
-        "Properties" : {
-            "RoleName": { "Fn::If" : [ "AIRGAPPED", "WLDEVELOPER", "FBIGOV-WLDeveloper" ] },
-            "AssumeRolePolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Principal": { "Fn::If" : [ "AIRGAPPED",
-                      { "AWS": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "CAPAccountId" }, ":root" ] ] } },
-                      { "Federated": { "Fn::Join" : [ "", [ "arn:", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "ARN"]}, ":iam::", { "Ref" : "AWS::AccountId" }, ":saml-provider/FBIGOV-ADFS" ] ] } }
-                  ]},
-                  "Action": { "Fn::If" : [ "AIRGAPPED", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
-                  "Condition": { "Fn::If" : [ "AIRGAPPED", { "Ref" : "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If" : [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
-                }
-              ]
-            }
-          }
+          ]
+        },
+        "ManagedPolicyArns": [
+          { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::aws:policy/PowerUserAccess" ] ] },
+          { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::aws:policy/job-function/Billing" ] ] }
+        ]
       }
+    },
+    "BuAnalyst": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::If": [ "C2S", "BUANALYST", "FBIGOV-BuAnalyst" ] },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Fn::If": [ "C2S",
+                { "AWS": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "CAPAccountId" }, ":root" ] ] } },
+                { "Federated": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "AWS::AccountId" }, ":saml-provider/", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "SAML"]} ] ] } }
+              ]},
+              "Action": { "Fn::If": [ "C2S", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+              "Condition": { "Fn::If": [ "C2S", { "Ref": "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If": [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+            }
+          ]
+        }
+      }
+    },
+    "Compute": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::If": [ "C2S", "COMPUTE", "FBIGOV-Compute" ] },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Fn::If": [ "C2S",
+                { "AWS": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "CAPAccountId" }, ":root" ] ] } },
+                { "Federated": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "AWS::AccountId" }, ":saml-provider/", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "SAML"]} ] ] } }
+              ]},
+              "Action": { "Fn::If": [ "C2S", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+              "Condition": { "Fn::If": [ "C2S", { "Ref": "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If": [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+            }
+          ]
+        }
+      }
+    },
+    "Network": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::If": [ "C2S", "NETWORK", "FBIGOV-Network" ] },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Fn::If": [ "C2S",
+                { "AWS": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "CAPAccountId" }, ":root" ] ] } },
+                { "Federated": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "AWS::AccountId" }, ":saml-provider/", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "SAML"]} ] ] } }
+              ]},
+              "Action": { "Fn::If": [ "C2S", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+              "Condition": { "Fn::If": [ "C2S", { "Ref": "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If": [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+            }
+          ]
+        }
+      }
+    },
+    "PDeveloper": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::If": [ "C2S", "PDEVELOPER", "FBIGOV-PDeveloper" ] },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Fn::If": [ "C2S",
+                { "AWS": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "CAPAccountId" }, ":root" ] ] } },
+                { "Federated": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "AWS::AccountId" }, ":saml-provider/", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "SAML"]} ] ] } }
+              ]},
+              "Action": { "Fn::If": [ "C2S", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+              "Condition": { "Fn::If": [ "C2S", { "Ref": "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If": [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+            }
+          ]
+        }
+      }
+    },
+    "Provisioning": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::If": [ "C2S", "PROVISIONING", "FBIGOV-Provisioning" ] },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Fn::If": [ "C2S",
+                { "AWS": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "CAPAccountId" }, ":root" ] ] } },
+                { "Federated": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "AWS::AccountId" }, ":saml-provider/", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "SAML"]} ] ] } }
+              ]},
+              "Action": { "Fn::If": [ "C2S", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+              "Condition": { "Fn::If": [ "C2S", { "Ref": "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If": [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+            }
+          ]
+        }
+      }
+    },
+    "Security": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::If": [ "C2S", "SECURITY", "FBIGOV-Security" ] },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Fn::If": [ "C2S",
+                { "AWS": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "CAPAccountId" }, ":root" ] ] } },
+                { "Federated": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "AWS::AccountId" }, ":saml-provider/", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "SAML"]} ] ] } }
+              ]},
+              "Action": { "Fn::If": [ "C2S", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+              "Condition": { "Fn::If": [ "C2S", { "Ref": "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If": [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+            }
+          ]
+        }
+      }
+    },
+    "TReadOnly": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::If": [ "C2S", "TREADONLY", "FBIGOV-TReadOnly" ] },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Fn::If": [ "C2S",
+                { "AWS": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "CAPAccountId" }, ":root" ] ] } },
+                { "Federated": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "AWS::AccountId" }, ":saml-provider/", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "SAML"]} ] ] } }
+              ]},
+              "Action": { "Fn::If": [ "C2S", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+              "Condition": { "Fn::If": [ "C2S", { "Ref": "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If": [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+            }
+          ]
+        }
+      }
+    },
+    "WLDeveloper": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "DEV",
+      "Properties": {
+        "RoleName": { "Fn::If": [ "C2S", "WLDEVELOPER", "FBIGOV-WLDeveloper" ] },
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": { "Fn::If": [ "C2S",
+                { "AWS": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "CAPAccountId" }, ":root" ] ] } },
+                { "Federated": { "Fn::Join": [ "", [ "arn:", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "ARN"]}, ":iam::", { "Ref": "AWS::AccountId" }, ":saml-provider/", { "Fn::FindInMap": [ "RegionMap", { "Ref": "AWS::Region" }, "SAML"]} ] ] } }
+              ]},
+              "Action": { "Fn::If": [ "C2S", "sts:AssumeRole", "sts:AssumeRoleWithSAML" ] },
+              "Condition": { "Fn::If": [ "C2S", { "Ref": "AWS::NoValue" }, {"StringEquals": { "SAML:aud": { "Fn::If": [ "GOVCLOUD", "https://signin.amazonaws-us-gov.com/saml", "https://signin.aws.amazon.com/saml" ] } } } ] }
+            }
+          ]
+        }
+      }
+    }
   },
   "Outputs":{
-    "Administrator" : {
-      "Description" : "Administrator role ARN",
-      "Value" : { "Fn::GetAtt" : [ "Administrator", "Arn" ] }
-    },
-    "BuAnalyst" : {
-      "Description" : "Business Analyst role ARN",
-      "Value" : { "Fn::GetAtt" : [ "BuAnalyst", "Arn" ] }
-    },
-    "Compute" : {
-      "Description" : "Compute Admin role ARN",
-      "Value" : { "Fn::GetAtt" : [ "Compute", "Arn" ] }
-    },
-    "Network" : {
-      "Description" : "Network Admin role ARN",
-      "Value" : { "Fn::GetAtt" : [ "Network", "Arn" ] }
-    },
-    "PDeveloper" : {
-      "Description" : "Production Developer role ARN",
-      "Value" : { "Fn::GetAtt" : [ "PDeveloper", "Arn" ] }
-    },
-    "Provisioning" : {
-      "Description" : "Provisioning role ARN",
-      "Value" : { "Fn::GetAtt" : [ "Provisioning", "Arn" ] }
-    },
-    "Security" : {
-      "Description" : "Security role ARN",
-      "Value" : { "Fn::GetAtt" : [ "Security", "Arn" ] }
-    },
-    "TReadOnly" : {
-      "Description" : "Tech Read Only role ARN",
-      "Value" : { "Fn::GetAtt" : [ "TReadOnly", "Arn" ] }
-    },
-    "WLDeveloper" : {
-      "Description" : "Workload Developer role ARN",
-      "Value" : { "Fn::GetAtt" : [ "WLDeveloper", "Arn" ] },
-      "Condition" : "DEV"
-    }
   }
 }
