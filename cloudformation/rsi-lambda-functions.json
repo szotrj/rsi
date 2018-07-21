@@ -22,17 +22,17 @@
         "stopInstances": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
-                "FunctionName" : "stopInstances",
+                "FunctionName": "stopInstances",
                 "Handler": "stopInstances.lambda_handler",
                 "Runtime": "python2.7",
                 "Code": {
-                    "S3Bucket": { "Ref" : "S3Bucket" },
-                    "S3Key": { "Ref" : "Package" }
+                    "S3Bucket": { "Ref": "S3Bucket" },
+                    "S3Key": { "Ref": "Package" }
                 },
                 "Description": "Stop EC2 Instances",
                 "MemorySize": 128,
                 "Timeout": 30,
-                "Role": { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":role/", { "Ref" : "LambdaRole" } ] ] },
+                "Role": { "Fn::Join": [ "", [ "arn:aws:iam::", { "Ref": "AWS::AccountId" }, ":role/", { "Ref": "LambdaRole" } ] ] },
                 "Tags": [ { "Key": "ResourceType", "Value": "Lambda" } ]
             }
         },
@@ -61,17 +61,17 @@
 	      "startInstances": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
-              "FunctionName" : "startInstances",
+              "FunctionName": "startInstances",
               "Handler": "startInstances.lambda_handler",
               "Runtime": "python2.7",
               "Code": {
-                "S3Bucket": { "Ref" : "S3Bucket" },
-                "S3Key": { "Ref" : "Package" }
+                "S3Bucket": { "Ref": "S3Bucket" },
+                "S3Key": { "Ref": "Package" }
               },
               "Description": "Start EC2 Instances",
               "MemorySize": 128,
               "Timeout": 30,
-              "Role": { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":role/", { "Ref" : "LambdaRole" } ] ] },
+              "Role": { "Fn::Join": [ "", [ "arn:aws:iam::", { "Ref": "AWS::AccountId" }, ":role/", { "Ref": "LambdaRole" } ] ] },
               "Tags": [ { "Key": "ResourceType", "Value": "Lambda" } ]
             }
         },
@@ -100,17 +100,17 @@
 	      "deleteUnattachedEBSVolumes": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
-              "FunctionName" : "deleteUnattachedEBSVolumes",
+              "FunctionName": "deleteUnattachedEBSVolumes",
               "Handler": "deleteUnattachedEBSVolumes.lambda_handler",
               "Runtime": "python2.7",
               "Code": {
-                "S3Bucket": { "Ref" : "S3Bucket" },
-                "S3Key": { "Ref" : "Package" }
+                "S3Bucket": { "Ref": "S3Bucket" },
+                "S3Key": { "Ref": "Package" }
               },
               "Description": "Deletes unattached/untagged EBS volumes",
               "MemorySize": 128,
               "Timeout": 30,
-              "Role": { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":role/", { "Ref" : "LambdaRole" } ] ] },
+              "Role": { "Fn::Join": [ "", [ "arn:aws:iam::", { "Ref": "AWS::AccountId" }, ":role/", { "Ref": "LambdaRole" } ] ] },
               "Tags": [ { "Key": "ResourceType", "Value": "Lambda" } ]
             }
         },
@@ -139,17 +139,17 @@
 	      "autoTagEBSVolumes": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
-              "FunctionName" : "autoTagEBSVolumes",
+              "FunctionName": "autoTagEBSVolumes",
               "Handler": "autoTagEBSVolumes.lambda_handler",
               "Runtime": "python2.7",
               "Code": {
-                "S3Bucket": { "Ref" : "S3Bucket" },
-                "S3Key": { "Ref" : "Package" }
+                "S3Bucket": { "Ref": "S3Bucket" },
+                "S3Key": { "Ref": "Package" }
               },
               "Description": "Automatically name EBS volumes based on attached AMI name",
               "MemorySize": 128,
               "Timeout": 30,
-              "Role": { "Fn::Join" : [ "", [ "arn:aws:iam::", { "Ref" : "AWS::AccountId" }, ":role/", { "Ref" : "LambdaRole" } ] ] },
+              "Role": { "Fn::Join": [ "", [ "arn:aws:iam::", { "Ref": "AWS::AccountId" }, ":role/", { "Ref": "LambdaRole" } ] ] },
               "Tags": [ { "Key": "ResourceType", "Value": "Lambda" } ]
             }
         },
@@ -179,7 +179,7 @@
     "Outputs": {
       "Message": {
         "Description": "Note:",
-        "Value" : "CloudWatch Events are disabled. To schedule Lambda functions, enable the Events in CloudWatch."
+        "Value": "CloudWatch Events are disabled. To schedule Lambda functions, enable the Events in CloudWatch."
       }
     }
 }

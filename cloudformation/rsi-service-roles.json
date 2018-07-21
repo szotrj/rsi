@@ -2,32 +2,32 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Creates service roles for an account",
   "Parameters": {
-    "EC2RoleName" : {
+    "EC2RoleName": {
       "Type": "String",
       "Description": "Name of the EC2 service role",
       "Default": "RSI-EC2Role"
     },
-    "CfnRoleName" : {
+    "CfnRoleName": {
       "Type": "String",
       "Description": "Name of the CloudFormation service role",
       "Default": "RSI-CloudFormationRole"
     },
-    "LambdaRoleName" : {
+    "LambdaRoleName": {
       "Type": "String",
       "Description": "Name of the Lambda service role",
       "Default": "RSI-LambdaRole"
     },
-    "ConfigRoleName" : {
+    "ConfigRoleName": {
       "Type": "String",
       "Description": "Name of the Config service role",
       "Default": "RSI-ConfigRole"
     }
   },
   "Resources": {
-    "EC2Role" : {
+    "EC2Role": {
       "Type": "AWS::IAM::Role",
-      "Properties" : {
-        "RoleName": { "Ref" : "EC2RoleName" },
+      "Properties": {
+        "RoleName": { "Ref": "EC2RoleName" },
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [ {
@@ -38,8 +38,8 @@
         },
         "Policies": [
           {
-            "PolicyName" : "Administrator",
-            "PolicyDocument" : {
+            "PolicyName": "Administrator",
+            "PolicyDocument": {
               "Version": "2012-10-17",
               "Id": "Admin",
               "Statement": [
@@ -58,15 +58,15 @@
     "EC2InstanceProfile": {
       "Type": "AWS::IAM::InstanceProfile",
       "Properties": {
-        "InstanceProfileName": "RSI-EC2Role",
+        "InstanceProfileName": { "Ref": "EC2RoleName" },
         "Path": "/",
         "Roles": [ { "Ref": "EC2Role" } ]
       }
     },
-    "CfnRole" : {
+    "CfnRole": {
       "Type": "AWS::IAM::Role",
-      "Properties" : {
-        "RoleName": { "Ref" : "CfnRoleName" },
+      "Properties": {
+        "RoleName": { "Ref": "CfnRoleName" },
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [ {
@@ -75,10 +75,10 @@
             "Action": "sts:AssumeRole"
           } ]
         },
-        "Policies" : [
+        "Policies": [
           {
-            "PolicyName" : "Administrator",
-            "PolicyDocument" : {
+            "PolicyName": "Administrator",
+            "PolicyDocument": {
               "Version": "2012-10-17",
               "Id": "Admin",
               "Statement": [
@@ -94,10 +94,10 @@
         ]
       }
     },
-    "LambdaRole" : {
+    "LambdaRole": {
       "Type": "AWS::IAM::Role",
-      "Properties" : {
-        "RoleName": { "Ref" : "LambdaRoleName" },
+      "Properties": {
+        "RoleName": { "Ref": "LambdaRoleName" },
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [ {
@@ -108,8 +108,8 @@
         },
         "Policies": [
           {
-            "PolicyName" : "Administrator",
-            "PolicyDocument" : {
+            "PolicyName": "Administrator",
+            "PolicyDocument": {
               "Version": "2012-10-17",
               "Id": "Admin",
               "Statement": [
@@ -125,10 +125,10 @@
         ]
       }
     },
-    "ConfigRole" : {
+    "ConfigRole": {
       "Type": "AWS::IAM::Role",
-      "Properties" : {
-        "RoleName": { "Ref" : "ConfigRoleName" },
+      "Properties": {
+        "RoleName": { "Ref": "ConfigRoleName" },
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
           "Statement": [ {
@@ -139,8 +139,8 @@
         },
         "Policies": [
           {
-            "PolicyName" : "Administrator",
-            "PolicyDocument" : {
+            "PolicyName": "Administrator",
+            "PolicyDocument": {
               "Version": "2012-10-17",
               "Id": "Admin",
               "Statement": [
@@ -158,21 +158,21 @@
     }
   },
   "Outputs":{
-    "EC2RoleName" : {
+    "EC2RoleName": {
       "Description": "EC2 Role ARN",
-      "Value" : {"Fn::GetAtt" : ["EC2Role", "Arn"] }
+      "Value": {"Fn::GetAtt": ["EC2Role", "Arn"] }
     },
-    "CfnRoleName" : {
+    "CfnRoleName": {
       "Description": "CloudFormation Role ARN",
-      "Value" : {"Fn::GetAtt" : ["CfnRole", "Arn"] }
+      "Value": {"Fn::GetAtt": ["CfnRole", "Arn"] }
     },
-    "LambdaRoleName" : {
+    "LambdaRoleName": {
       "Description": "Lambda Role ARN",
-      "Value" : {"Fn::GetAtt" : ["LambdaRole", "Arn"] }
+      "Value": {"Fn::GetAtt": ["LambdaRole", "Arn"] }
     },
-    "ConfigRoleName" : {
+    "ConfigRoleName": {
       "Description": "Config Role ARN",
-      "Value" : {"Fn::GetAtt" : ["ConfigRole", "Arn"] }
+      "Value": {"Fn::GetAtt": ["ConfigRole", "Arn"] }
     }
   }
 }

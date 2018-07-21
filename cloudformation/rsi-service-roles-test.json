@@ -10,9 +10,9 @@
     }
   },
   "Resources": {
-    "EC2Role" : {
+    "EC2Role": {
       "Type": "AWS::IAM::Role",
-      "Properties" : {
+      "Properties": {
         "RoleName": { "Fn::Sub": [ "${Name}-${AWS::AccountId}", {"Name": { "Fn::FindInMap": ["RegionMap", {"Ref":"AWS::Region"},"name"] } } ] },
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
@@ -24,8 +24,8 @@
         },
         "Policies": [
           {
-            "PolicyName" : "Administrator",
-            "PolicyDocument" : {
+            "PolicyName": "Administrator",
+            "PolicyDocument": {
               "Version": "2012-10-17",
               "Id": "Admin",
               "Statement": [
@@ -51,9 +51,9 @@
     }
   },
   "Outputs":{
-    "EC2RoleName" : {
+    "EC2RoleName": {
       "Description": "EC2 Role ARN",
-      "Value" : {"Fn::GetAtt" : ["EC2Role", "Arn"] }
+      "Value": {"Fn::GetAtt": ["EC2Role", "Arn"] }
     }
   }
 }

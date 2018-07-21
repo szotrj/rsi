@@ -66,9 +66,7 @@
         "PublicSubnet": {
             "Type": "AWS::EC2::Subnet",
             "Properties": {
-                "VpcId": {
-                    "Ref": "VPC"
-                },
+                "VpcId": { "Ref": "VPC" },
                 "CidrBlock": "10.0.0.0/24",
                 "Tags": [
                     {
@@ -84,58 +82,40 @@
         "AttachGateway": {
             "Type": "AWS::EC2::VPCGatewayAttachment",
             "Properties": {
-                "VpcId": {
-                    "Ref": "VPC"
-                },
-                "InternetGatewayId": {
-                    "Ref": "InternetGateway"
-                }
+                "VpcId": { "Ref": "VPC" },
+                "InternetGatewayId": { "Ref": "InternetGateway" }
             }
         },
         "RouteTable": {
             "Type": "AWS::EC2::RouteTable",
             "Properties": {
-                "VpcId": {
-                    "Ref": "VPC"
-                }
+                "VpcId": { "Ref": "VPC" }
             }
         },
         "Route": {
             "Type": "AWS::EC2::Route",
             "DependsOn": "AttachGateway",
             "Properties": {
-                "RouteTableId": {
-                    "Ref": "RouteTable"
-                },
+                "RouteTableId": { "Ref": "RouteTable" },
                 "DestinationCidrBlock": "0.0.0.0/0",
-                "GatewayId": {
-                    "Ref": "InternetGateway"
-                }
+                "GatewayId": { "Ref": "InternetGateway" }
             }
         },
         "SubnetRouteTableAssociation": {
             "Type": "AWS::EC2::SubnetRouteTableAssociation",
             "Properties": {
-                "SubnetId": {
-                    "Ref": "PublicSubnet"
-                },
-                "RouteTableId": {
-                    "Ref": "RouteTable"
-                }
+                "SubnetId": { "Ref": "PublicSubnet" },
+                "RouteTableId": { "Ref": "RouteTable" }
             }
         },
         "IPAddress": {
             "Type": "AWS::EC2::EIP",
-            "Properties": {
-                "Domain": "vpc"
-            }
+            "Properties": { "Domain": "vpc" }
         },
         "SecurityGroup": {
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
-                "VpcId": {
-                    "Ref": "VPC"
-                },
+                "VpcId": { "Ref": "VPC" },
                 "GroupDescription": "Security group for OpenVPN Server",
                 "SecurityGroupIngress": [
                     {
@@ -163,21 +143,11 @@
             "Type": "AWS::EC2::Instance",
             "DependsOn": "IPAddress",
             "Properties": {
-                "ImageId": {
-                    "Ref": "InstanceAMI"
-                },
-                "InstanceType": "t2.nano",
-                "KeyName": {
-                    "Ref": "KeyName"
-                },
-                "SecurityGroupIds": [
-                    {
-                        "Ref": "SecurityGroup"
-                    }
-                ],
-                "SubnetId": {
-                    "Ref": "PublicSubnet"
-                },
+                "ImageId": { "Ref": "InstanceAMI" },
+                "InstanceType": { "Ref": "InstanceType" },
+                "KeyName": { "Ref": "KeyName" },
+                "SecurityGroupIds": [{ "Ref": "SecurityGroup" }],
+                "SubnetId": { "Ref": "PublicSubnet"},
                 "Tags": [
                     {
                         "Key": "Name",
@@ -201,24 +171,18 @@
                         "AllocationId"
                     ]
                 },
-                "InstanceId": {
-                    "Ref": "OpenVPNInstance"
-                }
+                "InstanceId": { "Ref": "OpenVPNInstance" }
             }
         }
     },
     "Outputs": {
         "OpenVPNServerAdminURL": {
             "Description": "OpenVPN Administration URL",
-            "Value": {
-                "Fn::Sub": "https://${IPAddress}:943/admin"
-            }
+            "Value": { "Fn::Sub": "https://${IPAddress}:943/admin" }
         },
         "OpenVPNServerURL": {
             "Description": "OpenVPN Server URL",
-            "Value": {
-                "Fn::Sub": "https://${IPAddress}"
-            }
+            "Value": { "Fn::Sub": "https://${IPAddress}" }
         }
     }
 }
