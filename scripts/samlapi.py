@@ -1,4 +1,7 @@
 #!/usr/bin/python
+##########################################################################
+# Find and replace "domain" with your domain
+##########################################################################
 
 import sys
 import boto.sts
@@ -37,7 +40,7 @@ awsconfigfile = '/.aws/credentials'
 sslverification = True
 
 # idpentryurl: The initial url that starts the authentication process.
-idpentryurl = 'https://fs1.fbi.gov:443/adfs/ls/IdpInitiatedSignOn.aspx?loginToRp=urn:amazon:webservices:govcloud'
+idpentryurl = ''
 
 # Uncomment to enable low level debugging
 #logging.basicConfig(level=logging.DEBUG)
@@ -51,12 +54,12 @@ filename = home + awsconfigfile
 if os.path.exists(filename) and os.path.getsize(filename) > 0:
     pass
 else:
-    file = open(filename,"w") 
+    file = open(filename,"w")
     file.write('[default]\noutput = json\nregion =' + str(region) + '\naws_access_key_id =\naws_secret_access_key =')
     file.close()
 
 # Get the federated credentials from the user
-print "Please enter your Username (e.g. fbi\<username> or <username>@fbi.gov)"
+print "Please enter your Username (e.g. domain\<username> or <username>@domain)"
 print "Username:",
 username = raw_input()
 password = getpass.getpass()
@@ -107,9 +110,9 @@ for inputtag in formsoup.find_all(re.compile('(INPUT|input)')):
 #print payload
 
 # Some IdPs don't explicitly set a form action, but if one is set we should
-# build the idpauthformsubmiturl by combining the scheme and hostname 
+# build the idpauthformsubmiturl by combining the scheme and hostname
 # from the entry url with the form action target
-# If the action tag doesn't exist, we just stick with the 
+# If the action tag doesn't exist, we just stick with the
 # idpauthformsubmiturl above
 for inputtag in formsoup.find_all(re.compile('(FORM|form)')):
     action = inputtag.get('action')
@@ -179,7 +182,7 @@ if (assertion == ''):
 
 # Print welcome message
 try:
-    r = re.compile(r'FBI\\([^<]+)')
+    r = re.compile(r'domain\\([^<]+)')
     print "\nWelcome,", (re.search(r, base64.b64decode(assertion)).group())
 except:
     pass
