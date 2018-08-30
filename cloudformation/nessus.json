@@ -127,8 +127,8 @@
           "         --region ", { "Ref" : "AWS::Region" }, "\n"
         ]]}},
         "Tags" : [
-	  { "Key" : "Name", "Value" : "CPMO-NESSUS-SCANNER" }
-	]
+          { "Key" : "Name", "Value" : "CPMO-NESSUS-SCANNER" }
+        ]
       },
       "CreationPolicy" : {
         "ResourceSignal" : {
