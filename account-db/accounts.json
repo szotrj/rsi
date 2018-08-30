@@ -1,0 +1,26 @@
+[
+   {
+      "accountid": 12345679011,
+      "accountname": "Account-1",
+      "info": {
+        "envtype": "Dev",
+        "regionid": "Commercial"
+      }
+   },
+   {
+      "accountid": 12345679012,
+      "accountname": "Account-2",
+      "info": {
+        "envtype": "Dev",
+        "regionid": "GovCloud"
+      }
+   },
+   {
+      "accountid": 12345679013,
+      "accountname": "Account-3",
+      "info": {
+        "envtype": "Payer",
+        "regionid": "Commercial"
+      }
+   }
+]

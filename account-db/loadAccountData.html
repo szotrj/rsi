@@ -1,0 +1,68 @@
+<html>
+<head>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.16.min.js"></script>
+
+<script type="text/javascript">
+AWS.config.update({
+  region: "us-east-1",
+  endpoint: 'http://localhost:8000',
+  // accessKeyId default can be used while using the downloadable version of DynamoDB.
+  // For security reasons, do not store AWS Credentials in your files. Use Amazon Cognito instead.
+  accessKeyId: "default",
+  // secretAccessKey default can be used while using the downloadable version of DynamoDB.
+  // For security reasons, do not store AWS Credentials in your files. Use Amazon Cognito instead.
+  secretAccessKey: "default"
+});
+
+var docClient = new AWS.DynamoDB.DocumentClient();
+
+function processFile(evt) {
+    document.getElementById('textarea').innerHTML = "";
+    document.getElementById('textarea').innerHTML += "Importing accounts into DynamoDB. Please wait..." + "\n";
+    var file = evt.target.files[0];
+    if (file) {
+        var r = new FileReader();
+        r.onload = function(e) {
+            var contents = e.target.result;
+            var allAccounts = JSON.parse(contents);
+
+            allAccounts.forEach(function (account) {
+                document.getElementById('textarea').innerHTML += "Processing: " + account.accountname + "\n";
+                var params = {
+                    TableName: "Accounts",
+                    Item: {
+                        "accountid": account.accountid,
+                        "accountname": account.accountname,
+                        "info": account.info
+                    }
+                };
+                docClient.put(params, function (err, data) {
+                    if (err) {
+                        document.getElementById('textarea').innerHTML += "Unable to add account: " + count + account.accountname + "\n";
+                        document.getElementById('textarea').innerHTML += "Error JSON: " + JSON.stringify(err) + "\n";
+                    } else {
+                        document.getElementById('textarea').innerHTML += "PutItem succeeded: " + account.accountname + "\n";
+                        textarea.scrollTop = textarea.scrollHeight;
+                    }
+                });
+            });
+    };
+        r.readAsText(file);
+    } else {
+        alert("Could not read account data file");
+    }
+}
+
+</script>
+</head>
+
+<body>
+<input type="file" id="fileinput" accept='application/json'/>
+<br><br>
+<textarea readonly id= "textarea" style="width:600px; height:800px"></textarea>
+
+<script>
+    document.getElementById('fileinput').addEventListener('change', processFile, false);
+</script>
+</body>
+</html>

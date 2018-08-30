@@ -1,0 +1,54 @@
+<html>
+<head>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.16.min.js"></script>
+
+<script>
+AWS.config.update({
+  region: "us-east-1",
+  endpoint: 'http://localhost:8000',
+  // accessKeyId default can be used while using the downloadable version of DynamoDB.
+  // For security reasons, do not store AWS Credentials in your files. Use Amazon Cognito instead.
+  accessKeyId: "default",
+  // secretAccessKey default can be used while using the downloadable version of DynamoDB.
+  // For security reasons, do not store AWS Credentials in your files. Use Amazon Cognito instead.
+  secretAccessKey: "default"
+});
+
+var dynamodb = new AWS.DynamoDB();
+
+function createAccounts() {
+    var params = {
+        TableName : "Accounts",
+        KeySchema: [
+            { AttributeName: "accountid", KeyType: "HASH"},
+            { AttributeName: "accountname", KeyType: "RANGE" }
+        ],
+        AttributeDefinitions: [
+            { AttributeName: "accountid", AttributeType: "N" },
+            { AttributeName: "accountname", AttributeType: "S" }
+        ],
+        ProvisionedThroughput: {
+            ReadCapacityUnits: 5,
+            WriteCapacityUnits: 5
+        }
+    };
+
+    dynamodb.createTable(params, function(err, data) {
+        if (err) {
+            document.getElementById('textarea').innerHTML = "Unable to create table: " + "\n" + JSON.stringify(err, undefined, 2);
+        } else {
+            document.getElementById('textarea').innerHTML = "Created table: " + "\n" + JSON.stringify(data, undefined, 2);
+        }
+    });
+}
+
+</script>
+</head>
+
+<body>
+<input id="createTableButton" type="button" value="Create Table" onclick="createAccounts();" />
+<br><br>
+<textarea readonly id= "textarea" style="width:600px; height:800px"></textarea>
+
+</body>
+</html>

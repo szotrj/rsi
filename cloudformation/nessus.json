@@ -1,0 +1,146 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Description" : "Deploys and bootstraps a Nessus instance",
+  "Parameters" : {
+    "VPCID" : {
+      "Description" : "VPC ID",
+      "Type" : "AWS::EC2::VPC::Id",
+	    "ConstraintDescription": "Must be a valid VPC."
+    },
+    "Subnet" : {
+      "Description" : "Subnet in which to deploy instance",
+      "Type" : "AWS::EC2::Subnet::Id",
+      "ConstraintDescription": "Must be a valid Subnet."
+    },
+    "IamInstanceProfile" : {
+      "Description" : "IAM EC2 Instance Profile",
+      "Type" : "String",
+      "Default" : "RSI-EC2Role",
+      "ConstraintDescription" : "Must be the name of an existing IAM Instance Profile."
+    },
+	  "EC2KeyPair" : {
+      "Description" : "EC2 Key Pair",
+      "Type" : "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription" : "Must be the name of an existing EC2 Key Pair."
+    },
+    "NessusInstanceType" : {
+      "Description" : "Nessus Instance Type",
+      "Type" : "String",
+      "Default" : "m4.large",
+      "AllowedValues" : [ "t2.medium", "t2.large", "t2.xlarge", "m4.large","m4.xlarge","m4.2xlarge" ],
+      "ConstraintDescription" : "Must be a valid and allowed EC2 instance type."
+    },
+    "NessusSecurityGroups" : {
+      "Description" : "IDs of the Nessus Security Groups (up to 3)",
+      "Type" : "List<AWS::EC2::SecurityGroup::Id>",
+      "ConstraintDescription" : "Must be a valid list of Security Groups."
+    },
+	  "S3Bucket" : {
+      "Description" : "S3 Bucket Name for software",
+      "Type" : "String",
+      "Default" : "rsi-sw",
+      "ConstraintDescription" : "Must be the name of an existing S3 bucket."
+    },
+	"Software" : {
+      "Description" : "Software rpm",
+      "Type" : "String",
+      "Default" : "Nessus-7.2.0-es7.x86_64.rpm",
+      "ConstraintDescription" : "Must be the name of an existing S3 object."
+    }
+  },
+  "Mappings" : {
+    "RegionAMIMap" : {
+      "us-east-1" : { "ami" : "" },
+      "us-gov-west-1" : { "ami" : "" },
+      "us-isob-east-1" : { "ami" : "" },
+	    "us-iso-east-1" : { "ami" : "" }
+    }
+  },
+  "Resources" : {
+    "NessusInstance" : {
+      "Type" : "AWS::EC2::Instance",
+	    "Metadata" : {
+        "AWS::CloudFormation::Init" : {
+          "config" : {
+            "commands" : {
+              "nessus" : {
+			          "command" : "LOG=/var/log/nessus.log; cat /dev/null > $LOG; exec 3>&1 >> $LOG; exec 2>&3 >> $LOG; aws configure set default.region $REGION && echo \"REGION set to $REGION\"; echo \"Downloading Nessus rpm\"; aws s3 cp s3://$BUCKET/$SOFTWARE .; echo \"Installing Nessus\"; rpm -ivh $SOFTWARE; echo \"Starting Nessus\"; systemctl start nessusd; echo \"Modifying firewalld\"; /sbin/setenforce 0; firewall-offline-cmd --add-service=https; echo \"Restarting firewalld\"; systemctl restart firewalld; /sbin/setenforce 1; echo \"Changing Nessus port\"; /opt/nessus/sbin/nessuscli fix --set xmlrpc_listen_port=443; echo \"Restarting Nessus\"; systemctl restart nessusd; echo \"Enabling Nessus\"; systemctl enable nessusd; echo \"Nessus install complete.\"; exec 3>&-",
+			          "env" : { "BUCKET" : { "Ref" : "S3Bucket" }, "SOFTWARE" : { "Ref" : "Software" }, "REGION" : { "Ref" : "AWS::Region" } }
+			        }
+            },
+			      "files" : {
+			        "/etc/cfn/cfn-hup.conf" : {
+                "content" : { "Fn::Join" : ["", [
+                  "[main]\n",
+                  "stack=", { "Ref" : "AWS::StackId" }, "\n",
+                  "region=", { "Ref" : "AWS::Region" }, "\n",
+				          "interval=1\n",
+				          "verbose=true\n"
+                ]]},
+                "mode"    : "000400",
+                "owner"   : "root",
+                "group"   : "root"
+              },
+			        "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
+                "content": { "Fn::Join" : ["", [
+                  "[cfn-auto-reloader-hook]\n",
+                  "triggers=post.update\n",
+                  "path=Resources.NessusInstance.Metadata.AWS::CloudFormation::Init\n",
+                  "action=/opt/aws/bin/cfn-init -v --stack ", { "Ref" : "AWS::StackId" },
+				          "                                --resource NessusInstance",
+                  "                                --region ", { "Ref" : "AWS::Region" }, "\n",
+                  "runas=root\n"
+                ]]}
+              }
+			      },
+			      "services" : {
+              "sysvinit" : {
+                "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
+                    "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"]}
+              }
+            }
+          }
+        }
+      },
+      "Properties" : {
+        "InstanceType" : { "Ref" : "NessusInstanceType" },
+        "IamInstanceProfile" : { "Ref" : "IamInstanceProfile" },
+        "ImageId"  : { "Fn::FindInMap" : [ "RegionAMIMap", { "Ref" : "AWS::Region" }, "ami"] },
+		    "KeyName" : { "Ref" : "EC2KeyPair" },
+		    "SecurityGroupIds" : [{ "Fn::Select": [ "0", { "Ref" : "NessusSecurityGroups" }]}, { "Fn::Select": [ "1", { "Ref" : "NessusSecurityGroups" }]}, { "Fn::Select": [ "2", { "Ref" : "NessusSecurityGroups" }]}],
+        "SubnetId" : { "Ref" : "Subnet" },
+	      "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+          "#!/bin/bash -xe\n",
+          "# Run the script from the metadata\n",
+          "/opt/aws/bin/cfn-init -v ",
+          "         --stack ", { "Ref" : "AWS::StackName" },
+          "         --resource NessusInstance",
+          "         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+		      "# Start up the cfn-hup daemon to listen for changes to the instance metadata\n",
+          "/opt/aws/bin/cfn-hup || error_exit 'Failed to start cfn-hup'\n",
+
+          "# Signal the status from cfn-init\n",
+          "/opt/aws/bin/cfn-signal -e $? ",
+          "         --stack ", { "Ref" : "AWS::StackName" },
+          "         --resource NessusInstance",
+          "         --region ", { "Ref" : "AWS::Region" }, "\n"
+	      ]]}},
+        "Tags" : [
+		      { "Key" : "Name", "Value" : "CPMO-NESSUS-SCANNER" }
+	      ]
+      },
+	    "CreationPolicy" : {
+        "ResourceSignal" : {
+          "Timeout" : "PT10M"
+        }
+      }
+    }
+  },
+  "Outputs" : {
+    "StackName" : { "Value" : { "Ref" : "AWS::StackName" } },
+    "StackId" : { "Value" : { "Ref" : "AWS::StackId" } },
+    "StackRegion" : { "Value" : { "Ref" : "AWS::Region" } },
+	  "InstanceUrl" : { "Value" : { "Fn::Join" : [ "", [ "https://", { "Fn::GetAtt" : [ "NessusInstance", "PublicIp" ] } ] ] } }
+  }
+}

@@ -1,0 +1,56 @@
+<html>
+<head>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.7.16.min.js"></script>
+
+<script>
+AWS.config.update({
+  region: "us-east-1",
+  endpoint: 'http://localhost:8000',
+  // accessKeyId default can be used while using the downloadable version of DynamoDB.
+  // For security reasons, do not store AWS Credentials in your files. Use Amazon Cognito instead.
+  accessKeyId: "default",
+  // secretAccessKey default can be used while using the downloadable version of DynamoDB.
+  // For security reasons, do not store AWS Credentials in your files. Use Amazon Cognito instead.
+  secretAccessKey: "default"
+});
+
+var docClient = new AWS.DynamoDB.DocumentClient();
+
+function scanData() {
+    document.getElementById('textarea').innerHTML += "Scanning Accounts table." + "\n";
+
+    var params = {
+        TableName: "Accounts",
+        ProjectionExpression: "accountid, accountname, info"
+    };
+
+    docClient.scan(params, onScan);
+
+    function onScan(err, data) {
+        if (err) {
+            document.getElementById('textarea').innerHTML += "Unable to scan the table: " + "\n" + JSON.stringify(err, undefined, 2);
+        } else {
+            // Print all the accounts
+            document.getElementById('textarea').innerHTML += "Scan succeeded. " + "\n";
+            data.Items.forEach(function(account) {
+                document.getElementById('textarea').innerHTML += account.accountid + ": " + account.accountname + " - Type: " + account.info.envtype + " - Region: " + account.info.regionid + "\n";
+            });
+
+            // Continue scanning if we have more accounts (per scan 1MB limitation)
+            //document.getElementById('textarea').innerHTML += "Scanning for more..." + "\n";
+            //params.ExclusiveStartKey = data.LastEvaluatedKey;
+            //docClient.scan(params, onScan);
+        }
+    }
+}
+
+</script>
+</head>
+
+<body>
+<input id="scanData" type="button" value="Scan" onclick="scanData();" />
+<br><br>
+<textarea readonly id= "textarea" style="width:600px; height:800px"></textarea>
+
+</body>
+</html>
