@@ -64,18 +64,18 @@
           "config" : {
             "commands" : {
               "nessus" : {
-			          "command" : "LOG=/var/log/nessus.log; cat /dev/null > $LOG; exec 3>&1 >> $LOG; exec 2>&3 >> $LOG; aws configure set default.region $REGION && echo \"REGION set to $REGION\"; echo \"Downloading Nessus rpm\"; aws s3 cp s3://$BUCKET/$SOFTWARE .; echo \"Installing Nessus\"; rpm -ivh $SOFTWARE; echo \"Starting Nessus\"; systemctl start nessusd; echo \"Modifying firewalld\"; /sbin/setenforce 0; firewall-offline-cmd --add-service=https; echo \"Restarting firewalld\"; systemctl restart firewalld; /sbin/setenforce 1; echo \"Changing Nessus port\"; /opt/nessus/sbin/nessuscli fix --set xmlrpc_listen_port=443; echo \"Restarting Nessus\"; systemctl restart nessusd; echo \"Enabling Nessus\"; systemctl enable nessusd; echo \"Nessus install complete.\"; exec 3>&-",
-			          "env" : { "BUCKET" : { "Ref" : "S3Bucket" }, "SOFTWARE" : { "Ref" : "Software" }, "REGION" : { "Ref" : "AWS::Region" } }
+                "command" : "LOG=/var/log/nessus.log; cat /dev/null > $LOG; exec 3>&1 >> $LOG; exec 2>&3 >> $LOG; aws configure set default.region $REGION && echo \"REGION set to $REGION\"; echo \"Downloading Nessus rpm\"; aws s3 cp s3://$BUCKET/$SOFTWARE .; echo \"Installing Nessus\"; rpm -ivh $SOFTWARE; echo \"Starting Nessus\"; systemctl start nessusd; echo \"Modifying firewalld\"; /sbin/setenforce 0; firewall-offline-cmd --add-service=https; echo \"Restarting firewalld\"; systemctl restart firewalld; /sbin/setenforce 1; echo \"Changing Nessus port\"; /opt/nessus/sbin/nessuscli fix --set xmlrpc_listen_port=443; echo \"Restarting Nessus\"; systemctl restart nessusd; echo \"Enabling Nessus\"; systemctl enable nessusd; echo \"Nessus install complete.\"; exec 3>&-",
+                "env" : { "BUCKET" : { "Ref" : "S3Bucket" }, "SOFTWARE" : { "Ref" : "Software" }, "REGION" : { "Ref" : "AWS::Region" } }
 			        }
             },
 			      "files" : {
-			        "/etc/cfn/cfn-hup.conf" : {
+              "/etc/cfn/cfn-hup.conf" : {
                 "content" : { "Fn::Join" : ["", [
                   "[main]\n",
                   "stack=", { "Ref" : "AWS::StackId" }, "\n",
                   "region=", { "Ref" : "AWS::Region" }, "\n",
-				          "interval=1\n",
-				          "verbose=true\n"
+                  "interval=1\n",
+                  "verbose=true\n"
                 ]]},
                 "mode"    : "000400",
                 "owner"   : "root",
