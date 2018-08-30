@@ -5,7 +5,7 @@
     "VPCID" : {
       "Description" : "VPC ID",
       "Type" : "AWS::EC2::VPC::Id",
-	    "ConstraintDescription": "Must be a valid VPC."
+      "ConstraintDescription": "Must be a valid VPC."
     },
     "Subnet" : {
       "Description" : "Subnet in which to deploy instance",
