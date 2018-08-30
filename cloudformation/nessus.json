@@ -18,7 +18,7 @@
       "Default" : "RSI-EC2Role",
       "ConstraintDescription" : "Must be the name of an existing IAM Instance Profile."
     },
-	  "EC2KeyPair" : {
+    "EC2KeyPair" : {
       "Description" : "EC2 Key Pair",
       "Type" : "AWS::EC2::KeyPair::KeyName",
       "ConstraintDescription" : "Must be the name of an existing EC2 Key Pair."
