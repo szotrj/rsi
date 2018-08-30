@@ -68,7 +68,7 @@
                 "env" : { "BUCKET" : { "Ref" : "S3Bucket" }, "SOFTWARE" : { "Ref" : "Software" }, "REGION" : { "Ref" : "AWS::Region" } }
 			        }
             },
-			      "files" : {
+            "files" : {
               "/etc/cfn/cfn-hup.conf" : {
                 "content" : { "Fn::Join" : ["", [
                   "[main]\n",
@@ -81,7 +81,7 @@
                 "owner"   : "root",
                 "group"   : "root"
               },
-			        "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
+              "/etc/cfn/hooks.d/cfn-auto-reloader.conf" : {
                 "content": { "Fn::Join" : ["", [
                   "[cfn-auto-reloader-hook]\n",
                   "triggers=post.update\n",
@@ -92,8 +92,8 @@
                   "runas=root\n"
                 ]]}
               }
-			      },
-			      "services" : {
+            },
+            "services" : {
               "sysvinit" : {
                 "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
                     "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"]}
@@ -106,10 +106,10 @@
         "InstanceType" : { "Ref" : "NessusInstanceType" },
         "IamInstanceProfile" : { "Ref" : "IamInstanceProfile" },
         "ImageId"  : { "Fn::FindInMap" : [ "RegionAMIMap", { "Ref" : "AWS::Region" }, "ami"] },
-		    "KeyName" : { "Ref" : "EC2KeyPair" },
-		    "SecurityGroupIds" : [{ "Fn::Select": [ "0", { "Ref" : "NessusSecurityGroups" }]}, { "Fn::Select": [ "1", { "Ref" : "NessusSecurityGroups" }]}, { "Fn::Select": [ "2", { "Ref" : "NessusSecurityGroups" }]}],
+        "KeyName" : { "Ref" : "EC2KeyPair" },
+        "SecurityGroupIds" : [{ "Fn::Select": [ "0", { "Ref" : "NessusSecurityGroups" }]}, { "Fn::Select": [ "1", { "Ref" : "NessusSecurityGroups" }]}, { "Fn::Select": [ "2", { "Ref" : "NessusSecurityGroups" }]}],
         "SubnetId" : { "Ref" : "Subnet" },
-	      "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+        "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
           "#!/bin/bash -xe\n",
           "# Run the script from the metadata\n",
           "/opt/aws/bin/cfn-init -v ",
@@ -117,7 +117,7 @@
           "         --resource NessusInstance",
           "         --region ", { "Ref" : "AWS::Region" }, "\n",
 
-		      "# Start up the cfn-hup daemon to listen for changes to the instance metadata\n",
+          "# Start up the cfn-hup daemon to listen for changes to the instance metadata\n",
           "/opt/aws/bin/cfn-hup || error_exit 'Failed to start cfn-hup'\n",
 
           "# Signal the status from cfn-init\n",
@@ -125,12 +125,12 @@
           "         --stack ", { "Ref" : "AWS::StackName" },
           "         --resource NessusInstance",
           "         --region ", { "Ref" : "AWS::Region" }, "\n"
-	      ]]}},
+        ]]}},
         "Tags" : [
 		      { "Key" : "Name", "Value" : "CPMO-NESSUS-SCANNER" }
 	      ]
       },
-	    "CreationPolicy" : {
+      "CreationPolicy" : {
         "ResourceSignal" : {
           "Timeout" : "PT10M"
         }
