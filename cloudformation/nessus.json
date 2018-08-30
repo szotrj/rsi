@@ -35,13 +35,13 @@
       "Type" : "List<AWS::EC2::SecurityGroup::Id>",
       "ConstraintDescription" : "Must be a valid list of Security Groups."
     },
-	  "S3Bucket" : {
+    "S3Bucket" : {
       "Description" : "S3 Bucket Name for software",
       "Type" : "String",
       "Default" : "rsi-sw",
       "ConstraintDescription" : "Must be the name of an existing S3 bucket."
     },
-	"Software" : {
+    "Software" : {
       "Description" : "Software rpm",
       "Type" : "String",
       "Default" : "Nessus-7.2.0-es7.x86_64.rpm",
@@ -53,13 +53,13 @@
       "us-east-1" : { "ami" : "" },
       "us-gov-west-1" : { "ami" : "" },
       "us-isob-east-1" : { "ami" : "" },
-	    "us-iso-east-1" : { "ami" : "" }
+      "us-iso-east-1" : { "ami" : "" }
     }
   },
   "Resources" : {
     "NessusInstance" : {
       "Type" : "AWS::EC2::Instance",
-	    "Metadata" : {
+      "Metadata" : {
         "AWS::CloudFormation::Init" : {
           "config" : {
             "commands" : {
@@ -87,7 +87,7 @@
                   "triggers=post.update\n",
                   "path=Resources.NessusInstance.Metadata.AWS::CloudFormation::Init\n",
                   "action=/opt/aws/bin/cfn-init -v --stack ", { "Ref" : "AWS::StackId" },
-				          "                                --resource NessusInstance",
+                  "                                --resource NessusInstance",
                   "                                --region ", { "Ref" : "AWS::Region" }, "\n",
                   "runas=root\n"
                 ]]}
@@ -127,8 +127,8 @@
           "         --region ", { "Ref" : "AWS::Region" }, "\n"
         ]]}},
         "Tags" : [
-		      { "Key" : "Name", "Value" : "CPMO-NESSUS-SCANNER" }
-	      ]
+	  { "Key" : "Name", "Value" : "CPMO-NESSUS-SCANNER" }
+	]
       },
       "CreationPolicy" : {
         "ResourceSignal" : {
@@ -141,6 +141,6 @@
     "StackName" : { "Value" : { "Ref" : "AWS::StackName" } },
     "StackId" : { "Value" : { "Ref" : "AWS::StackId" } },
     "StackRegion" : { "Value" : { "Ref" : "AWS::Region" } },
-	  "InstanceUrl" : { "Value" : { "Fn::Join" : [ "", [ "https://", { "Fn::GetAtt" : [ "NessusInstance", "PublicIp" ] } ] ] } }
+    "InstanceUrl" : { "Value" : { "Fn::Join" : [ "", [ "https://", { "Fn::GetAtt" : [ "NessusInstance", "PublicIp" ] } ] ] } }
   }
 }
