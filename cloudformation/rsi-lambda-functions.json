@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Management Lambda Functions",
+    "Description": "Deploys Management Lambda Functions",
     "Parameters": {
         "S3Bucket": {
             "Type": "String",
