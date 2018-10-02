@@ -48,13 +48,40 @@ def lambda_handler(event, context):
         print(IgwId)
         print(VpcId)
 
+    # Check for VPC attachment (add try/except for non-existant IGW)
     response = ec2.describe_internet_gateways(
         InternetGatewayIds=[
             IgwId
         ]
     )
 
-    if response['InternetGateways'][0]['Attachments'] == None or response['InternetGateways'][0]['Attachments'] == []:
+    if response['InternetGateways'][0]['Attachments']:
+        print('IGW State: ' + response['InternetGateways'][0]['Attachments'][0]['State'])
+        print('IGW attached to VPC ID: ' + response['InternetGateways'][0]['Attachments'][0]['VpcId'])
+        print('Detaching IGW from VPC...')
+        response = ec2.detach_internet_gateway(
+            InternetGatewayId=(IgwId),
+            VpcId=(VpcId)
+        )
+        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                print('Detach successful')
+        #print(response)
+        print('Deleting IGW...')
+        response = ec2.delete_internet_gateway(
+            InternetGatewayId=(event['detail']['requestParameters']['internetGatewayId'])
+        )
+        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                print('Delete successful')
+
+        # SNS notification
+        try:
+            response = sns.publish(
+                TargetArn = sns_topic,
+                Subject = 'Security Alert: IGW modification detected in ' + customerAcct,
+                Message = 'An unsanctioned Internet Gateway (' + IgwId + ') was automatically detached and deleted from ' + VpcId
+                )
+        except ClientError as e:
+            print("SNS failure: %s" %e)
         print('IGW not attached. Deleting IGW: ' + IgwId)
         try:
             response = ec2.delete_internet_gateway(
@@ -76,28 +103,23 @@ def lambda_handler(event, context):
             print(e.response['Error']['Code'])
             print(e.response['ResponseMetadata']['HTTPStatusCode'])
     else:
-        print('IGW State: ' + response['InternetGateways'][0]['Attachments'][0]['State'])
-        print('IGW attached to VPC ID: ' + response['InternetGateways'][0]['Attachments'][0]['VpcId'])
-        print('Detaching IGW from VPC...')
-        response = ec2.detach_internet_gateway(
-            InternetGatewayId=(IgwId),
-            VpcId=(VpcId)
-        )
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-                print('Detach successful')
-        print('Deleting IGW...')
-        response = ec2.delete_internet_gateway(
-            InternetGatewayId=(event['detail']['requestParameters']['internetGatewayId'])
-        )
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+        print('IGW not attached. Deleting IGW: ' + IgwId)
+        try:
+            response = ec2.delete_internet_gateway(
+                InternetGatewayId=(IgwId)
+            )
+            if response['ResponseMetadata']['HTTPStatusCode'] == 200:
                 print('Delete successful')
 
-        # SNS notification
-        try:
-            response = sns.publish(
-                TargetArn = sns_topic,
-                Subject = 'Security Alert: IGW modification detected in ' + customerAcct,
-                Message = 'An unsanctioned Internet Gateway (' + IgwId + ') was automatically detached and deleted from ' + VpcId
+                # SNS notification
+                try:
+                    response = sns.publish(
+                        TargetArn = sns_topic,
+                        Subject = 'Security Alert: IGW modification detected in ' + customerAcct,
+                        Message = 'An unsanctioned Internet Gateway (' + IgwId + ') was automatically deleted.'
                 )
+                except ClientError as e:
+                    print("SNS failure: %s" %e)
         except ClientError as e:
-            print("SNS failure: %s" %e)
+            print(e.response['Error']['Code'])
+            print(e.response['ResponseMetadata']['HTTPStatusCode'])
