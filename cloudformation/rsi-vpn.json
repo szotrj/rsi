@@ -5,7 +5,7 @@
         "InstanceAMI": {
             "Description": "OpenVPN AMI",
             "Type": "String",
-            "Default": "ami-c24d18bb"
+            "Default": "ami-0f83d55facb8bb0b1"
         },
         "InstanceType": {
             "Description": "OpenVPN Instance Type",
