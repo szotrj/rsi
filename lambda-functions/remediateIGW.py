@@ -14,26 +14,31 @@ client = boto3.client('lambda', config=cfg)
 # Get region identifier
 session = boto3.session.Session()
 region = session.region_name
+if region == 'us-gov-west-1':
+    partition = 'aws-us-gov'
+if region == 'us-isob-east-1':
+    partition = 'aws-isob'
+if region == 'us-iso-east-1':
+    partition = 'aws-iso'
 
-# Get current account id
+# Get current Account ID
 sts = boto3.client('sts')
 currAccountId = sts.get_caller_identity().get('Account')
 
 # Set SNS topic ARN
 sns = boto3.client('sns')
-sns_topic = 'arn:aws:sns:' + region + ':' + AccountId + ':topic-name'
+sns_topic = 'arn:' + partition + ':sns:' + region + ':' + currAccountId + ':topic-name'
 
 # ===============================================================================
 
 def lambda_handler(event, context):
-
     # Get the client Account ID
     customerAcct = event['account']
 
-    # Assume cross-account role in client systems (target) account to run function
+    # Assume cross-account role in target account to run function
     assumedRoleObject = sts.assume_role(
         DurationSeconds=3600,
-        RoleArn='arn:aws:iam::' + customerAcct + ':role/roleName',
+        RoleArn='arn:' + partition + ':iam::' + customerAcct + ':role/XMonitorRole',
         RoleSessionName='remediateIGW',
     )
 
@@ -79,7 +84,7 @@ def lambda_handler(event, context):
             print('Error code: ' + e.response['Error']['Code'])
             print('HTTP status code: ' + str(e.response['ResponseMetadata']['HTTPStatusCode']))
             print('IGW may have already been deleted.')
-            exit(1)
+            exit(0)
     try:
         VpcId
         print('IGW (' + IgwId + ') attached to VPC (' + VpcId + ')')
