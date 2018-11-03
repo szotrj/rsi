@@ -43,9 +43,9 @@ def lambda_handler(event, context):
     )
 
     credentials = assumedRoleObject['Credentials']
-    ak=credentials['AccessKeyId']
-    sk=credentials['SecretAccessKey']
-    st=credentials['SessionToken']
+    ak = credentials['AccessKeyId']
+    sk = credentials['SecretAccessKey']
+    st = credentials['SessionToken']
 
     ec2 = boto3.client('ec2',region_name=region,aws_access_key_id=ak,aws_secret_access_key=sk,aws_session_token=st)
 
@@ -60,8 +60,8 @@ def lambda_handler(event, context):
                 ]
             )
             try:
-                VpcId=response['InternetGateways'][0]['Attachments'][0]['VpcId']
-                state=response['InternetGateways'][0]['Attachments'][0]['State']
+                VpcId = response['InternetGateways'][0]['Attachments'][0]['VpcId']
+                state = response['InternetGateways'][0]['Attachments'][0]['State']
                 print('IGW State: ' + state)
             except:
                 pass
@@ -70,8 +70,8 @@ def lambda_handler(event, context):
             print('HTTP status code: ' + str(e.response['ResponseMetadata']['HTTPStatusCode']))
             print('IGW may have already been deleted.')
     elif (event['detail']['eventName'] == 'AttachInternetGateway'):
-        IgwId=event['detail']['requestParameters']['internetGatewayId']
-        VpcId=event['detail']['requestParameters']['vpcId']
+        IgwId = event['detail']['requestParameters']['internetGatewayId']
+        VpcId = event['detail']['requestParameters']['vpcId']
         try:
             response = ec2.describe_internet_gateways(
                 InternetGatewayIds=[
