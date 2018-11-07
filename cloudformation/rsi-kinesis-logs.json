@@ -5,7 +5,7 @@
     "pLogsDestinationName": {
       "Description": "Name of CloudWatch Logs destination",
       "Type": "String",
-      "Default": "testDestination"
+      "Default": "logsDestination"
     },
     "pKinesisStreamName": {
       "Description": "Name of the Kinesis Stream",
