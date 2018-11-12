@@ -1,0 +1,32 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Sets up a VPC Flow Logs Subscription Filter for delivery to a central destination",
+  "Parameters": {
+    "pVPCFlowLogGroupName": {
+      "Description": "Name of VPC Flow Log Log Group",
+      "Type": "String",
+      "Default": ""
+    },
+    "pVPCFlowLogDestinationArn": {
+      "Description": "ARN of the VPC Flow Log destination",
+      "Type": "String",
+      "Default": ""
+    },
+    "pVPCFlowLogRoleArn": {
+      "Description": "ARN of the VPC Flow Log Role",
+      "Type": "String",
+      "Default": ""
+    }
+  },
+  "Resources": {
+    "rCWLSubscriptionFilter": {
+      "Type": "AWS::Logs::SubscriptionFilter",
+      "Properties": {
+        "DestinationArn": {"Ref": "pDestinationArn"},
+        "FilterPattern": "",
+        "LogGroupName": {"Ref": "pVPCFlowLogDestinationArn"},
+        "RoleArn": {"Ref": "pVPCFlowLogRoleArn"}
+      }
+    }
+  }
+}
