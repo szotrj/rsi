@@ -32,7 +32,7 @@
                                     "Action": [
                                         "logs:*"
                                     ],
-                                    "Resource": "arn:aws:logs:*:*:*"
+                                    "Resource": { "Fn::Sub": "arn:${AWS::Partition}:logs:*:*:*" }
                                 }
                             ]
                         }
