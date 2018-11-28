@@ -10,7 +10,7 @@
     "pKinesisStreamName": {
       "Description": "Name of the Kinesis Stream",
       "Type": "String",
-      "Default": "ECSO-LOGS"
+      "Default": "LOG-STREAM"
     },
     "pCWLtoKinesisRoleRoleName": {
       "Description": "Name of the CloudWatch Logs to Kinesis role ",
