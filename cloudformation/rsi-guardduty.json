@@ -1,0 +1,102 @@
+{
+    "Description": "GuardDuty deployment for master and member accounts",
+    "Parameters": {
+        "MemberInvitation": {
+            "Description": "Invitation ID for member account, leave empty on master account",
+            "Type": "String"
+        },
+        "MemberEmail": {
+            "Description": "Invitation ID for member account, leave empty on master account",
+            "Type": "String"
+        }
+    },
+    "Conditions": {
+        "IsMaster": {
+            "Fn::Equals": [ { "Ref": "AWS::AccountId" }, "1234" ]
+        },
+        "IsMember": {
+            "Fn::Not": [ { "Condition": "IsMaster" } ]
+        }
+    },
+    "Resources": {
+        "Detector": {
+            "Type": "AWS::GuardDuty::Detector",
+            "Properties": {
+                "Enable": "true"
+            }
+        },
+        "EventsRule": {
+            "Type": "AWS::Events::Rule",
+            "Condition": "IsMaster",
+            "Properties": {
+                "EventPattern": {
+                    "source": [
+                        "aws.guardduty"
+                    ]
+                },
+                "State": "ENABLED",
+                "Targets": [
+                    {
+                        "Arn": { "Ref": "SNSTopic" },
+                        "Id": "sns"
+                    }
+                ]
+            }
+        },
+        "Master": {
+            "Type": "AWS::GuardDuty::Master",
+            "Condition": "IsMember",
+            "Properties": {
+                "DetectorId": { "Ref": "Detector" },
+                "InvitationId": { "Ref": "MemberInvitation" },
+                "MasterId": "1234"
+            }
+        },
+        "Member": {
+            "Type": "AWS::GuardDuty::Member",
+            "Condition": "IsMaster",
+            "Properties": {
+                "DetectorId": { "Ref": "Detector" },
+                "Email": { "Ref": "MemberEmail" },
+                "MemberId": "5678",
+                "Status": "Invited"
+            }
+        },
+        "SNSTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Condition": "IsMaster",
+            "Properties": {
+                "Subscription": []
+            }
+        },
+        "SNSTopicPolicy": {
+            "Type": "AWS::SNS::TopicPolicy",
+            "Condition": "IsMaster",
+            "Properties": {
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sns:Publish"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "events.amazonaws.com"
+                            },
+                            "Resource": [
+                                {
+                                    "Ref": "SNSTopic"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "Topics": [
+                    {
+                        "Ref": "SNSTopic"
+                    }
+                ]
+            }
+        }
+    }
+}
