@@ -1,0 +1,1 @@
+aws s3control put-public-access-block --account-id $(aws sts get-caller-identity --query 'Account' --output text) --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
