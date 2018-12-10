@@ -1,0 +1,174 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Creates a S3 bucket to store CloudTrail logs from external account",
+  "Parameters": {
+    "BucketName": {
+      "Description": "Name of the central CloudTrail bucket",
+      "Type": "String",
+      "Default": "esoc-cloudtrail"
+    },
+    "ConfigSupported": {
+      "Description": "Support Config logs",
+      "Type": "String",
+      "Default": "No",
+      "AllowedValues": ["Yes","No"]
+    }
+  },
+  "Conditions": {
+    "ConfigSupported": { "Fn::Equals": [ {"Ref": "ConfigSupported"}, "Yes"]}
+  },
+  "Resources": {
+    "rArchiveLogsBucket": {
+        "Type": "AWS::S3::Bucket",
+        "DeletionPolicy": "Retain",
+        "Properties": {
+            "AccessControl": "LogDeliveryWrite",
+            "LifecycleConfiguration": {
+                "Rules": [
+                    {
+                        "Id": "Transition90daysRetain7yrs",
+                        "Status": "Enabled",
+                        "ExpirationInDays": 2555,
+                        "Transition": {
+                            "TransitionInDays": 90,
+                            "StorageClass": "STANDARD_IA"
+                        }
+                    }
+                ]
+            },
+            "VersioningConfiguration": {
+                "Status": "Enabled"
+            }
+        }
+    },
+    "rArchiveLogsBucketPolicy": {
+        "Type": "AWS::S3::BucketPolicy",
+        "DependsOn": "rArchiveLogsBucket",
+        "Properties": {
+            "Bucket": {
+                "Ref": "rArchiveLogsBucket"
+            },
+            "PolicyDocument": {
+                "Statement": [
+                    {
+                        "Sid": "Enforce HTTPS Connections",
+                        "Action": "s3:*",
+                        "Effect": "Deny",
+                        "Principal": "*",
+                        "Resource": {
+                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${rArchiveLogsBucket}/*"
+                        },
+                        "Condition": {
+                            "Bool": {
+                                "aws:SecureTransport": false
+                            }
+                        }
+                    },
+                    {
+                        "Sid": "Restrict Delete* Actions",
+                        "Action": "s3:Delete*",
+                        "Effect": "Deny",
+                        "Principal": "*",
+                        "Resource": {
+                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${rArchiveLogsBucket}/*"
+                        }
+                    }
+                ]
+            }
+        },
+        "DependsOn": [
+          "rArchiveLogsBucket"
+        ]
+    },
+    "rCloudTrailBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "BucketName": { "Ref": "BucketName" },
+      "Properties": {
+        "AccessControl": "Private",
+        "VersioningConfiguration": {
+            "Status": "Enabled"
+        },
+        "LoggingConfiguration": {
+            "DestinationBucketName": {
+                "Ref": "rArchiveLogsBucket"
+            },
+            "LogFilePrefix": "cloudtraillogs"
+        },
+        "Tags": []
+      }
+    },
+    "rCloudTrailBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {"Ref": "rCloudTrailBucket"},
+	      "PolicyDocument":
+          {
+	          "Version": "2012-10-17",
+	          "Statement": [
+	            {
+	              "Sid": "AWSAclCheck",
+		            "Effect": "Allow",
+		            "Principal": {
+	                "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "ConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
+		            },
+		            "Action": "s3:GetBucketAcl",
+		            "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${rCloudTrailBucket}" }
+              },
+	            {
+	              "Sid": "AWSCloudTrailWrite",
+	              "Effect": "Allow",
+	              "Principal": {
+	                "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "ConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
+	              },
+	              "Action": "s3:PutObject",
+	              "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${rCloudTrailBucket}/AWSLogs*" },
+	              "Condition": {
+	                "StringEquals": {
+		                "s3:x-amz-acl": "bucket-owner-full-control"
+		              }
+	              }
+	            },
+              {
+                  "Sid": "Restrict Delete* Actions",
+                  "Action": "s3:Delete*",
+                  "Effect": "Deny",
+                  "Principal": "*",
+                  "Resource": {
+                      "Fn::Sub": [
+                          "arn:${Partition}:s3:::${cTrailS3Bucket}/*",
+                          {
+                              "Partition": {
+                                  "Fn::If": [
+                                      "GovCloudCondition",
+                                      "aws-us-gov",
+                                      "aws"
+                                  ]
+                              }
+                          }
+                      ]
+                  }
+              },
+              {
+                "Sid": "Enforce HTTPS Connections",
+                "Action": "s3:*",
+                "Effect": "Deny",
+                "Principal": "*",
+                "Resource": {
+                  "Fn::Sub": "arn:${AWS::Partition}:s3:::${cTrailS3Bucket}/*"
+                },
+                "Condition": {
+                  "Bool": {
+                    "aws:SecureTransport": false
+                  }
+                }
+              }
+            ]
+          }
+      },
+      "DependsOn": [
+        "rCloudTrailBucket"
+      ]
+    }
+  }
+}
