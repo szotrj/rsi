@@ -19,7 +19,7 @@ from datetime import datetime
 from dateutil import tz
 from botocore.exceptions import ClientError
 
-def role_name(aws_account_number, role_name, no_clobber):
+def assume_role(aws_account_number, role_name, no_clobber):
     """
     Assumes the provided role in an account
     :param aws_account_number: AWS Account Number
@@ -108,5 +108,5 @@ if __name__ == '__main__':
     parser.add_argument('--no_clobber', action='store_true', required=False, help="Do not clobber default profile")
     args = parser.parse_args()
 
-    # Processing Master account
-    session = role_name(args.account_id, args.role_name, args.no_clobber)
+    # Call assume
+    session = assume_role(args.account_id, args.role_name, args.no_clobber)
