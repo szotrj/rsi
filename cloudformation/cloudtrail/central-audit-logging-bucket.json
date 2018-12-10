@@ -7,7 +7,7 @@
       "Type": "String",
       "Default": "esoc-cloudtrail"
     },
-    "ConfigSupported": {
+    "pConfigSupported": {
       "Description": "Support Config logs",
       "Type": "String",
       "Default": "No",
@@ -15,7 +15,7 @@
     }
   },
   "Conditions": {
-    "ConfigSupported": { "Fn::Equals": [ {"Ref": "ConfigSupported"}, "Yes"]}
+    "cConfigSupported": { "Fn::Equals": [ {"Ref": "pConfigSupported"}, "Yes"]}
   },
   "Resources": {
     "rArchiveLogsBucket": {
@@ -83,8 +83,8 @@
     "rCloudTrailBucket": {
       "Type": "AWS::S3::Bucket",
       "DeletionPolicy": "Retain",
-      "BucketName": { "Ref": "BucketName" },
       "Properties": {
+        "BucketName": { "Ref": "BucketName" },
         "AccessControl": "Private",
         "VersioningConfiguration": {
             "Status": "Enabled"
@@ -110,7 +110,7 @@
 	              "Sid": "AWSAclCheck",
 		            "Effect": "Allow",
 		            "Principal": {
-	                "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "ConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
+	                "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "cConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
 		            },
 		            "Action": "s3:GetBucketAcl",
 		            "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${rCloudTrailBucket}" }
@@ -119,7 +119,7 @@
 	              "Sid": "AWSCloudTrailWrite",
 	              "Effect": "Allow",
 	              "Principal": {
-	                "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "ConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
+	                "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "cConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
 	              },
 	              "Action": "s3:PutObject",
 	              "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${rCloudTrailBucket}/AWSLogs*" },
@@ -136,7 +136,7 @@
                   "Principal": "*",
                   "Resource": {
                       "Fn::Sub": [
-                          "arn:${Partition}:s3:::${cTrailS3Bucket}/*",
+                          "arn:${Partition}:s3:::${rCloudTrailBucket}/*",
                           {
                               "Partition": {
                                   "Fn::If": [
@@ -155,7 +155,7 @@
                 "Effect": "Deny",
                 "Principal": "*",
                 "Resource": {
-                  "Fn::Sub": "arn:${AWS::Partition}:s3:::${cTrailS3Bucket}/*"
+                  "Fn::Sub": "arn:${AWS::Partition}:s3:::${rCloudTrailBucket}/*"
                 },
                 "Condition": {
                   "Bool": {
