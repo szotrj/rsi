@@ -1,19 +1,19 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Sets up a VPC Flow Logs Subscription Filter for delivery to a central destination",
+  "Description": "Sets up a VPC Flow Logs Subscription Filter for delivery to a Kinesis Stream destination",
   "Parameters": {
     "pVPCFlowLogGroupName": {
       "Description": "Name of VPC Flow Log Log Group",
       "Type": "String",
       "Default": ""
     },
-    "pVPCFlowLogDestinationArn": {
-      "Description": "ARN of the VPC Flow Log destination",
+    "pKinesisStreamArn": {
+      "Description": "ARN of the Kinesis Stream",
       "Type": "String",
       "Default": ""
     },
-    "pVPCFlowLogRoleArn": {
-      "Description": "ARN of the VPC Flow Log Role",
+    "pCloudWatchLogstoKinesisRoleArn": {
+      "Description": "ARN of the CloudWatch Logs to Kinesis Role",
       "Type": "String",
       "Default": ""
     }
@@ -22,10 +22,10 @@
     "rCWLSubscriptionFilter": {
       "Type": "AWS::Logs::SubscriptionFilter",
       "Properties": {
-        "DestinationArn": {"Ref": "pDestinationArn"},
+        "DestinationArn": {"Ref": "pKinesisStreamArn"},
         "FilterPattern": "",
-        "LogGroupName": {"Ref": "pVPCFlowLogDestinationArn"},
-        "RoleArn": {"Ref": "pVPCFlowLogRoleArn"}
+        "LogGroupName": {"Ref": "pVPCFlowLogGroupName"},
+        "RoleArn": {"Ref": "pCloudWatchLogstoKinesisRoleArn"}
       }
     }
   }
