@@ -1,16 +1,21 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Sets up a CloudWatch Logs destination for a Kinesis Stream",
+  "Description": "Creates a Kinesis Stream, CloudWatch Logs destination, CloudWatch to Kinesis role, and a CloudWatch Logs Subscription Filter",
   "Parameters": {
+    "pVPCFlowLogGroupName": {
+      "Description": "Name of VPC Flow Log CloudWatch Logs Group",
+      "Type": "String",
+      "Default": ""
+    },
     "pLogsDestinationName": {
-      "Description": "Name of CloudWatch Logs destination",
+      "Description": "Name of the CloudWatch Logs Destination",
       "Type": "String",
       "Default": "logsDestination"
     },
     "pKinesisStreamName": {
       "Description": "Name of the Kinesis Stream",
       "Type": "String",
-      "Default": "LOG-STREAM"
+      "Default": "FLOW-LOGS-STREAM"
     },
     "pCWLtoKinesisRoleRoleName": {
       "Description": "Name of the CloudWatch Logs to Kinesis role ",
@@ -64,7 +69,7 @@
         "ShardCount": 1,
       }
     },
-    "rCloudWatchLogs": {
+    "rCloudWatchLogsDestination": {
       "Type": "AWS::Logs::Destination",
       "Properties": {
         "DestinationName": { "Ref": "pLogsDestinationName" },
@@ -84,6 +89,25 @@
         "RoleArn": { "Fn::GetAtt": [ "rCWLtoKinesisRole", "Arn" ] },
         "TargetArn":  { "Fn::GetAtt": [ "rKinesisStream", "Arn" ] }
       }
+    },
+    "rCWLSubscriptionFilter": {
+      "Type": "AWS::Logs::SubscriptionFilter",
+      "Properties": {
+        "DestinationArn": { "Fn::GetAtt" : [ "rKinesisStream", "Arn" ] },
+        "FilterPattern": "",
+        "LogGroupName": {"Ref": "pVPCFlowLogGroupName"},
+        "RoleArn": { "Fn::GetAtt" : [ "rCWLtoKinesisRole", "Arn" ] }
+      }
+    }
+  },
+  "Outputs": {
+    "oCloudWatchLogstoKinesisRoleArn": {
+      "Description": "ARN of the CloudWatch Logs to Kinesis role",
+      "Value": { "Fn::GetAtt" : [ "rCWLtoKinesisRole", "Arn" ] }
+    },
+    "oKinesisStreamArn": {
+      "Description": "ARN of the Kinesis Stream",
+      "Value": { "Fn::GetAtt" : [ "rKinesisStream", "Arn" ] }
     }
   }
 }
