@@ -103,7 +103,7 @@
                 "Principal": {
                   "Service": [
                     "events.amazonaws.com",
-                    "cloudwatch.amazonaws.com"
+                    { "Fn::Sub": "monitoring.${AWS::Region}.amazonaws.com" }
                   ]
                 },
                 "Action": [
