@@ -101,7 +101,10 @@
                 "Sid": "Publish",
                 "Effect": "Allow",
                 "Principal": {
-                  "Service": "events.amazonaws.com"
+                  "Service": [
+                    "events.amazonaws.com",
+                    "cloudwatch.amazonaws.com"
+                  ]
                 },
                 "Action": [
                   "sns:Publish"
