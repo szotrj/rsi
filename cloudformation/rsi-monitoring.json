@@ -98,13 +98,26 @@
                 }
               },
               {
-                "Sid": "Publish",
+                "Sid": "EventsPublish",
                 "Effect": "Allow",
                 "Principal": {
-                  "Service": [
-                    "events.amazonaws.com",
-                    { "Fn::Sub": "monitoring.${AWS::Region}.amazonaws.com" }
-                  ]
+                  "Service": "events.amazonaws.com"
+                },
+                "Action": [
+                  "sns:Publish"
+                ],
+                "Resource": { "Fn::Sub": "arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:ecso-security-monitoring" },
+                "Condition": {
+                  "StringEquals": {
+                    "AWS:SourceOwner": { "Fn::Sub": "${AWS::AccountId}" }
+                  }
+                }
+              },
+              {
+                "Sid": "CloudWatchPublish",
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": { "Fn::Sub": "monitoring.${AWS::Region}.amazonaws.com" }
                 },
                 "Action": [
                   "sns:Publish"
