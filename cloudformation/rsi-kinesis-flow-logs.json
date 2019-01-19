@@ -62,11 +62,77 @@
       }
     },
     "rKinesisStream": {
-      "Type" : "AWS::Kinesis::Stream",
-      "Properties" : {
+      "Type": "AWS::Kinesis::Stream",
+      "Properties": {
         "Name": { "Ref": "pKinesisStreamName" },
         "RetentionPeriodHours": 24,
         "ShardCount": 1,
+        "StreamEncryption": {
+          "EncryptionType": "KMS",
+          "KeyId": { "Ref": "rKinesisKeyAlias" }
+        }
+      }
+    },
+    "rKinesisStreamKey": {
+      "Type": "AWS::KMS::Key",
+      "Properties": {
+        "Description": "CMK for Kinesis Stream",
+        "KeyPolicy": {
+          "Version": "2012-10-17",
+          "Id": "key-default-1",
+          "Statement": [
+            {
+              "Sid": "Allow administration of the key",
+              "Effect": "Allow",
+              "Principal": { 
+                "AWS": [
+                  { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" },
+                  { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/FBIGOV-XAdmin" }
+                ]
+              },
+              "Action": [
+                "kms:Create*",
+                "kms:Describe*",
+                "kms:Enable*",
+                "kms:List*",
+                "kms:Put*",
+                "kms:Update*",
+                "kms:Revoke*",
+                "kms:Disable*",
+                "kms:Get*",
+                "kms:Delete*",
+                "kms:ScheduleKeyDeletion",
+                "kms:CancelKeyDeletion"
+              ],
+              "Resource": "*"
+            },
+            {
+              "Sid": "Allow use of the key",
+              "Effect": "Allow",
+              "Principal": { 
+                "AWS": [
+                  { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" },
+                  { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/FBIGOV-XAdmin" }
+                ]
+              },
+              "Action": [
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey"
+              ], 
+              "Resource": "*"
+            }    
+          ]
+        }
+      }
+    },
+    "rKinesisKeyAlias": {
+      "Type": "AWS::KMS::Alias",
+      "Properties": {
+        "AliasName": "alias/KinesisStreamKey",
+        "TargetKeyId": { "Ref":"rKinesisStreamKey" }
       }
     },
     "rCloudWatchLogsDestination": {
@@ -93,21 +159,25 @@
     "rCWLSubscriptionFilter": {
       "Type": "AWS::Logs::SubscriptionFilter",
       "Properties": {
-        "DestinationArn": { "Fn::GetAtt" : [ "rKinesisStream", "Arn" ] },
+        "DestinationArn": { "Fn::GetAtt": [ "rKinesisStream", "Arn" ] },
         "FilterPattern": "",
         "LogGroupName": {"Ref": "pVPCFlowLogGroupName"},
-        "RoleArn": { "Fn::GetAtt" : [ "rCWLtoKinesisRole", "Arn" ] }
+        "RoleArn": { "Fn::GetAtt": [ "rCWLtoKinesisRole", "Arn" ] }
       }
     }
   },
   "Outputs": {
     "oCloudWatchLogstoKinesisRoleArn": {
       "Description": "ARN of the CloudWatch Logs to Kinesis role",
-      "Value": { "Fn::GetAtt" : [ "rCWLtoKinesisRole", "Arn" ] }
+      "Value": { "Fn::GetAtt": [ "rCWLtoKinesisRole", "Arn" ] }
     },
     "oKinesisStreamArn": {
       "Description": "ARN of the Kinesis Stream",
-      "Value": { "Fn::GetAtt" : [ "rKinesisStream", "Arn" ] }
+      "Value": { "Fn::GetAtt": [ "rKinesisStream", "Arn" ] }
+    },
+    "oCWLDestinationArn": {
+      "Description": "ARN of the CloudWatch Logs Destination",
+      "Value": { "Fn::GetAtt": [ "rCloudWatchLogsDestination", "Arn" ] }
     }
   }
 }
