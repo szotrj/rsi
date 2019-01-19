@@ -116,16 +116,19 @@
               {
                 "Sid": "CloudWatchPublish",
                 "Effect": "Allow",
-                "Principal": {
-                  "Service": { "Fn::Sub": "monitoring.${AWS::Region}.amazonaws.com" }
-                },
+                "Principal": "*",
                 "Action": [
                   "sns:Publish"
                 ],
                 "Resource": { "Fn::Sub": "arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:ecso-security-monitoring" },
                 "Condition": {
-                  "StringEquals": {
-                    "AWS:SourceOwner": { "Fn::Sub": "${AWS::AccountId}" }
+                  "ArnLike": {
+                    "AWS:SourceArn": [ 
+                      { "Fn::GetAtt": [ "rRemediateIGWErrorAlarm", "Arn" ] },
+                      { "Fn::GetAtt": [ "rNotifyFederationChangeErrorAlarm", "Arn" ] },
+                      { "Fn::GetAtt": [ "rRemediateCloudTrailErrorAlarm", "Arn" ] },
+                      { "Fn::GetAtt": [ "rRootAPIActivityErrorAlarm", "Arn" ] }
+                    ]
                   }
                 }
               }
