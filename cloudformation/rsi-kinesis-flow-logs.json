@@ -10,7 +10,7 @@
     "pLogsDestinationName": {
       "Description": "Name of the CloudWatch Logs Destination",
       "Type": "String",
-      "Default": "logsDestination"
+      "Default": "vpcFlowLogsDestination"
     },
     "pKinesisStreamName": {
       "Description": "Name of the Kinesis Stream",
@@ -77,6 +77,8 @@
       "Type": "AWS::KMS::Key",
       "Properties": {
         "Description": "CMK for Kinesis Stream",
+        "Enabled": true,
+        "EnableKeyRotation": true,
         "KeyPolicy": {
           "Version": "2012-10-17",
           "Id": "key-default-1",
@@ -87,7 +89,7 @@
               "Principal": { 
                 "AWS": [
                   { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" },
-                  { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/FBIGOV-XAdmin" }
+                  { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/FBIGOV-XAdmin/RJSZOT@FBI.GOV" }
                 ]
               },
               "Action": [
@@ -111,8 +113,9 @@
               "Effect": "Allow",
               "Principal": { 
                 "AWS": [
-                  { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" },
-                  { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/FBIGOV-XAdmin" }
+                  { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${pCWLtoKinesisRoleRoleName}" },
+                  { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/firehose_delivery_role" },
+                  { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:user/esoc-admin" }
                 ]
               },
               "Action": [
