@@ -89,7 +89,7 @@
               "Principal": { 
                 "AWS": [
                   { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" },
-                  { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/FBIGOV-XAdmin/RJSZOT@FBI.GOV" }
+                  { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/*" }
                 ]
               },
               "Action": [
