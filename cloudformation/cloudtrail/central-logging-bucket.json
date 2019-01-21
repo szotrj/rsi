@@ -22,6 +22,7 @@
         "Type": "AWS::S3::Bucket",
         "DeletionPolicy": "Retain",
         "Properties": {
+            "BucketName": { "Fn::Sub": "${BucketName}-archive" },
             "AccessControl": "LogDeliveryWrite",
             "LifecycleConfiguration": {
                 "Rules": [
@@ -94,6 +95,16 @@
             },
             "LogFilePrefix": "cloudtrail"
         },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "KMSMasterKeyID": { "Ref": "rS3BucketKey" },
+                "SSEAlgorithm": "aws:kms"
+              }
+            }
+          ]
+        },
         "Tags": []
       }
     },
@@ -101,51 +112,40 @@
       "Type": "AWS::S3::BucketPolicy",
       "Properties": {
         "Bucket": {"Ref": "rMasterBucket"},
-	      "PolicyDocument":
+          "PolicyDocument":
           {
-	          "Version": "2012-10-17",
-	          "Statement": [
-	            {
-	              "Sid": "AWSAclCheck",
-		            "Effect": "Allow",
-		            "Principal": {
-	                "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "cConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
-		            },
-		            "Action": "s3:GetBucketAcl",
-		            "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${rMasterBucket}" }
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "AWSAclCheck",
+                    "Effect": "Allow",
+                    "Principal": {
+                    "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "cConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
+                    },
+                    "Action": "s3:GetBucketAcl",
+                    "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${rMasterBucket}" }
                 },
-	            {
-	              "Sid": "AWSCloudTrailWrite",
-	              "Effect": "Allow",
-	              "Principal": {
-	                "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "cConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
-	              },
-	              "Action": "s3:PutObject",
-	              "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${rMasterBucket}/AWSLogs*" },
-	              "Condition": {
-	                "StringEquals": {
-		                "s3:x-amz-acl": "bucket-owner-full-control"
-		              }
-	              }
-	            },
+                {
+                  "Sid": "AWSCloudTrailWrite",
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "cConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
+                  },
+                  "Action": "s3:PutObject",
+                  "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${rMasterBucket}/AWSLogs*" },
+                  "Condition": {
+                    "StringEquals": {
+                        "s3:x-amz-acl": "bucket-owner-full-control"
+                      }
+                  }
+                },
                 {
                   "Sid": "Restrict Delete* Actions",
                   "Action": "s3:Delete*",
                   "Effect": "Deny",
                   "Principal": "*",
                   "Resource": {
-                      "Fn::Sub": [
-                          "arn:${Partition}:s3:::${rMasterBucket}/*",
-                          {
-                              "Partition": {
-                                  "Fn::If": [
-                                      "GovCloudCondition",
-                                      "aws-us-gov",
-                                      "aws"
-                                  ]
-                              }
-                          }
-                      ]
+                      "Fn::Sub": "arn:${AWS::Partition}:s3:::${rMasterBucket}/*"
                   }
               },
               {
@@ -185,7 +185,7 @@
                 "Principal": { 
                   "AWS": [
                     { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" },
-                    { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/*" }
+                    { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/FBIGOV-XAdmin/RJSZOT@FBI.GOV" }
                   ]
                 },
                 "Action": [
@@ -210,7 +210,8 @@
                 "Principal": { 
                   "AWS": [
                     { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:user/esoc-admin" }
-                  ]
+                  ],
+                  "Service": "cloudtrail.amazonaws.com"
                 },
                 "Action": [
                   "kms:Encrypt",
@@ -225,10 +226,10 @@
           }
         }
       },
-      "rKinesisKeyAlias": {
+      "rS3KeyAlias": {
         "Type": "AWS::KMS::Alias",
         "Properties": {
-          "AliasName": "alias/CloudTrailS3Key",
+          "AliasName": "alias/S3MasterKey",
           "TargetKeyId": { "Ref":"rS3BucketKey" }
         }
       }
