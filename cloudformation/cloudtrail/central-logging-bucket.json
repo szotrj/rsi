@@ -75,10 +75,7 @@
                     }
                 ]
             }
-        },
-        "DependsOn": [
-          "rArchiveLogsBucket"
-        ]
+        }
     },
     "rMasterBucket": {
       "Type": "AWS::S3::Bucket",
@@ -164,10 +161,7 @@
               }
             ]
           }
-      },
-      "DependsOn": [
-        "rMasterBucket"
-      ]
+      }
     },
     "rS3BucketKey": {
         "Type": "AWS::KMS::Key",
