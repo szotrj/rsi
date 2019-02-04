@@ -179,8 +179,12 @@
                 "Principal": { 
                   "AWS": [
                     { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" },
+<<<<<<< HEAD
                     { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:user/Administrator" },
                     { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/" }
+=======
+                    { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/*" }
+>>>>>>> a67185d9bb0b4900cae7a4ea87d80409c669780c
                   ]
                 },
                 "Action": [
