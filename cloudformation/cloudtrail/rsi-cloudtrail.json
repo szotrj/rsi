@@ -118,7 +118,7 @@
               "Sid": "Stmt1335892150622",
               "Effect": "Allow",
               "Principal": {
-                "AWS": { "Fn::Sub": [ "arn:${AWS::Partition}:iam::${BILLINGID}:root", {"BILLINGID": {"Fn::FindInMap": ["RegionMap", {"Ref": "AWS::Region"}, "BILLINGID"]}}] }
+                "AWS": { "Fn::Sub": [ "arn:${AWS::Partition}:iam::${BILLINGID}:root", {"BILLINGID": {"Fn::FindInMap": ["mRegionMap", {"Ref": "AWS::Region"}, "BILLINGID"]}}] }
               },
               "Action": [
                 "s3:GetBucketAcl",
@@ -130,7 +130,7 @@
               "Sid": "Stmt1335892526596",
               "Effect": "Allow",
               "Principal": {
-                "AWS": { "Fn::Sub": [ "arn:${AWS::Partition}:iam::${BILLINGID}:root", {"BILLINGID": {"Fn::FindInMap": ["RegionMap", {"Ref": "AWS::Region"}, "BILLINGID"]}}] }
+                "AWS": { "Fn::Sub": [ "arn:${AWS::Partition}:iam::${BILLINGID}:root", {"BILLINGID": {"Fn::FindInMap": ["mRegionMap", {"Ref": "AWS::Region"}, "BILLINGID"]}}] }
               },
               "Action": "s3:PutObject",
               "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::div${pDivision}-${AWS::AccountId}-billing/*" }
@@ -163,7 +163,7 @@
                   "Sid": "Stmt1335892526596",
                   "Effect": "Allow",
                   "Principal": {
-                    "AWS": { "Fn::Sub": ["arn:${AWS::Partition}:iam::${CAPID}:root", { "CAPID": {"Fn::FindInMap": ["RegionMap", {"Ref": "AWS::Region"}, "CAPID"]}}] }
+                    "AWS": { "Fn::Sub": ["arn:${AWS::Partition}:iam::${CAPID}:root", { "CAPID": {"Fn::FindInMap": ["mRegionMap", {"Ref": "AWS::Region"}, "CAPID"]}}] }
                   },
                   "Action": [
                     "s3:PutObject",
