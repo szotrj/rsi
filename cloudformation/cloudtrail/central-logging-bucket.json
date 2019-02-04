@@ -18,11 +18,11 @@
     "cConfigSupported": { "Fn::Equals": [ {"Ref": "pConfigSupported"}, "Yes"]}
   },
   "Resources": {
-    "rArchiveLogsBucket": {
+    "rAccessLogsBucket": {
         "Type": "AWS::S3::Bucket",
         "DeletionPolicy": "Retain",
         "Properties": {
-            "BucketName": { "Fn::Sub": "${BucketName}-archive" },
+            "BucketName": { "Fn::Sub": "${AWS::AccountId}-bucket-access-logging" },
             "AccessControl": "LogDeliveryWrite",
             "LifecycleConfiguration": {
                 "Rules": [
@@ -42,11 +42,11 @@
             }
         }
     },
-    "rArchiveLogsBucketPolicy": {
+    "rAccessLogsBucketPolicy": {
         "Type": "AWS::S3::BucketPolicy",
         "Properties": {
             "Bucket": {
-                "Ref": "rArchiveLogsBucket"
+                "Ref": "rAccessLogsBucket"
             },
             "PolicyDocument": {
                 "Statement": [
@@ -56,7 +56,7 @@
                         "Effect": "Deny",
                         "Principal": "*",
                         "Resource": {
-                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${rArchiveLogsBucket}/*"
+                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${rAccessLogsBucket}/*"
                         },
                         "Condition": {
                             "Bool": {
@@ -70,7 +70,7 @@
                         "Effect": "Deny",
                         "Principal": "*",
                         "Resource": {
-                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${rArchiveLogsBucket}/*"
+                            "Fn::Sub": "arn:${AWS::Partition}:s3:::${rAccessLogsBucket}/*"
                         }
                     }
                 ]
@@ -88,7 +88,7 @@
         },
         "LoggingConfiguration": {
             "DestinationBucketName": {
-                "Ref": "rArchiveLogsBucket"
+                "Ref": "rAccessLogsBucket"
             },
             "LogFilePrefix": "cloudtrail"
         },
@@ -129,7 +129,7 @@
                     "Service": [ "cloudtrail.amazonaws.com", { "Fn::If": [ "cConfigSupported", "config.amazonaws.com", { "Ref": "AWS::NoValue" } ] } ]
                   },
                   "Action": "s3:PutObject",
-                  "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${rMasterBucket}/AWSLogs*" },
+                  "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${rMasterBucket}/AWSLogs/*" },
                   "Condition": {
                     "StringEquals": {
                         "s3:x-amz-acl": "bucket-owner-full-control"
@@ -144,22 +144,22 @@
                   "Resource": {
                       "Fn::Sub": "arn:${AWS::Partition}:s3:::${rMasterBucket}/*"
                   }
-              },
-              {
-                "Sid": "Enforce HTTPS Connections",
-                "Action": "s3:*",
-                "Effect": "Deny",
-                "Principal": "*",
-                "Resource": {
-                  "Fn::Sub": "arn:${AWS::Partition}:s3:::${rMasterBucket}/*"
                 },
-                "Condition": {
-                  "Bool": {
-                    "aws:SecureTransport": false
+                {
+                  "Sid": "Enforce HTTPS Connections",
+                  "Action": "s3:*",
+                  "Effect": "Deny",
+                  "Principal": "*",
+                  "Resource": {
+                    "Fn::Sub": "arn:${AWS::Partition}:s3:::${rMasterBucket}/*"
+                  },
+                  "Condition": {
+                    "Bool": {
+                      "aws:SecureTransport": false
+                    }
                   }
                 }
-              }
-            ]
+              ]
           }
       }
     },
@@ -179,7 +179,8 @@
                 "Principal": { 
                   "AWS": [
                     { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" },
-                    { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/FBIGOV-XAdmin/RJSZOT@FBI.GOV" }
+                    { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:user/Administrator" },
+                    { "Fn::Sub": "arn:${AWS::Partition}:sts::${AWS::AccountId}:assumed-role/" }
                   ]
                 },
                 "Action": [
@@ -203,7 +204,8 @@
                 "Effect": "Allow",
                 "Principal": { 
                   "AWS": [
-                    { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:user/esoc-admin" }
+                    { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:user/Administrator" },
+                    { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" }
                   ],
                   "Service": "cloudtrail.amazonaws.com"
                 },

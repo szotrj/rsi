@@ -1,111 +1,120 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Sets up CloudTrail logs and Billing reports for an account",
+  "Description": "Sets up CloudTrail and bucket access logging for an account, and a Billing report bucket for Payer accounts",
   "Parameters":{
-    "EnvType": {
+    "pEnvType": {
       "Description": "Environment Type",
       "Type": "String",
       "AllowedValues": ["dev", "preprod", "prod", "payer"]
     },
-    "ProjectName": {
-      "Description": "Project Name for System Account (lowercase)",
+    "pProjectName": {
+      "Description": "Project or Division Name (lowercase)",
       "Type": "String",
-      "Default": "cpmo"
+      "Default": ""
     },
-	  "Division": {
-      "Description": "Division Number for Payer Account",
+    "pDivision": {
+      "Description": "Division Number (only required for Payer accounts)",
       "Type": "Number",
       "Default": "00"
+    },
+    "pDestination": {
+      "Description": "CloudTrail Destination",
+      "Type": "String",
+      "AllowedValues": ["local", "central"]
+    },
+    "pMasterCloudTrailBucket": {
+	    "Description": "Master CloudTrail Bucket Name",
+	    "Type": "String",
+	    "Default": "esoc-master-cloudtrail"
 	  }
   },
   "Mappings": {
-    "RegionMap": {
-	    "us-east-1": { "BILLINGID": "386209384616" },
-	    "us-east-2": { "BILLINGID": "386209384616" },
-      "us-west-1": { "BILLINGID": "386209384616" },
-	    "us-west-2": { "BILLINGID": "386209384616" },
-	    "us-gov-west-1": { "BILLINGID": "" },
-  	  "us-isob-east-1": { "BILLINGID": "" },
-	    "us-iso-east-1": { "BILLINGID": "" }
+    "mRegionMap": {
+      "us-east-1": { "BILLINGID": "", "BILLINGUSER": "root" },
+      "us-east-2": { "BILLINGID": "", "BILLINGUSER": "root" },
+      "us-west-1": { "BILLINGID": "", "BILLINGUSER": "root" },
+      "us-west-2": { "BILLINGID": "", "BILLINGUSER": "root" },
+      "us-gov-west-1": { "BILLINGID": "" },
+      "us-isob-east-1": { "BILLINGID": "", "BILLINGUSER": "user/IAM-Programmatic-Access-Prod", "CAPID": "" },
+      "us-iso-east-1": { "BILLINGID": "" }
     }
   },
   "Conditions": {
-    "PAYER": {"Fn::Equals": [{"Ref": "EnvType"}, "payer"]}
+    "cPAYER": {"Fn::Equals": [{"Ref": "pEnvType"}, "payer"]},
+    "cSC2S": {"Fn::Equals": [{"Ref": "AWS::Region"}, "us-isob-east-1"]},
+    "cC2S": {"Fn::Equals": [{"Ref": "AWS::Region"}, "us-iso-east-1"]},
+	  "cLOCAL": {"Fn::Equals": [{"Ref": "pDestination"}, "local"]},
+	  "cCENTRAL": {"Fn::Equals": [{"Ref": "pDestination"}, "central"]}
   },
   "Resources": {
-    "CloudTrailBucket": {
+    "rCloudTrailBucket": {
       "Type": "AWS::S3::Bucket",
-      "DeletionPolicy": "Delete",
+      "Condition": "cLOCAL",
+      "DeletionPolicy": "Retain",
       "Properties": {
-        "BucketName": { "Fn::Sub": "${ProjectName}-${EnvType}-${AWS::AccountId}-cloudtrail" },
+        "BucketName": { "Fn::Sub": "${pProjectName}-${pEnvType}-${AWS::AccountId}-cloudtrail" },
         "LoggingConfiguration": {
-          "DestinationBucketName": { "Ref": "CloudTrailBucketLogging"},
+          "DestinationBucketName": { "Ref": "rAccessLoggingBucket"},
           "LogFilePrefix": "cloudtrail"
         }
       }
     },
-    "CloudTrailBucketPolicy": {
+    "rCloudTrailBucketPolicy": {
       "Type": "AWS::S3::BucketPolicy",
+      "Condition": "cLOCAL",
       "Properties": {
-        "Bucket": {"Ref": "CloudTrailBucket"},
-	      "PolicyDocument": {
-	        "Version": "2012-10-17",
-	        "Statement": [
-  	        {
-	            "Sid": "AWSAclCheck",
-		          "Effect": "Allow",
-		          "Principal": {
-	              "Service": [ "cloudtrail.amazonaws.com" ]
-    	        },
-		          "Action": "s3:GetBucketAcl",
-		          "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${ProjectName}-${EnvType}-${AWS::AccountId}-cloudtrail" }
-            },
-	          {
-	            "Sid": "AWSCloudTrailWrite",
-  	          "Effect": "Allow",
-	            "Principal": {
-	              "Service": [ "cloudtrail.amazonaws.com" ]
-	            },
-	            "Action": "s3:PutObject",
-	            "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${ProjectName}-${EnvType}-${AWS::AccountId}-cloudtrail/AWSLogs/${AWS::AccountId}/*" },
-	            "Condition": {
-  	            "StringEquals": {
-	  	            "s3:x-amz-acl": "bucket-owner-full-control"
-		            }
-	            }
-	          }
+        "Bucket": {"Ref": "rCloudTrailBucket"},
+              "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Sid": "AWSAclCheck",
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": [ "cloudtrail.amazonaws.com" ]
+                      },
+                      "Action": "s3:GetBucketAcl",
+                      "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${pProjectName}-${pEnvType}-${AWS::AccountId}-cloudtrail" }
+                  },
+                  {
+                    "Sid": "AWSCloudTrailWrite",
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [ "cloudtrail.amazonaws.com" ]
+                    },
+                    "Action": "s3:PutObject",
+                    "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${pProjectName}-${pEnvType}-${AWS::AccountId}-cloudtrail/AWSLogs*" },
+                    "Condition": {
+                    "StringEquals": {
+                      "s3:x-amz-acl": "bucket-owner-full-control"
+                    }
+                  }
+                }
           ]
         }
       }
     },
-	  "CloudTrailBucketLogging": {
+    "rBillingBucket": {
       "Type": "AWS::S3::Bucket",
+      "Condition": "cPAYER",
+      "DeletionPolicy": "Retain",
       "Properties": {
-        "BucketName": { "Fn::Sub": "${ProjectName}-${EnvType}-${AWS::AccountId}-cloudtrail-logging" },
-        "AccessControl": "LogDeliveryWrite"
-      }
-    },
-	  "BillingBucket": {
-      "Type": "AWS::S3::Bucket",
-	    "Condition": "PAYER",
-      "DeletionPolicy": "Delete",
-      "Properties": {
-        "BucketName": { "Fn::Sub": "div${Division}-${AWS::AccountId}-billing" },
-		    "LoggingConfiguration": {
-          "DestinationBucketName": { "Ref": "BillingBucketLogging"},
+        "BucketName": { "Fn::Sub": "div${pDivision}-${AWS::AccountId}-billing" },
+          "LoggingConfiguration": {
+          "DestinationBucketName": { "Ref": "rAccessLoggingBucket" },
           "LogFilePrefix": "billing"
         }
       }
     },
-	  "BillingBucketPolicy": {
+    "rBillingBucketPolicy": {
       "Type": "AWS::S3::BucketPolicy",
-	    "Condition": "PAYER",
+      "Condition": "cPAYER",
       "Properties": {
-        "Bucket": {"Ref": "BillingBucket"},
-	      "PolicyDocument": {
-	        "Version": "2012-10-17",
-	        "Statement": [
-	          {
+        "Bucket": {"Ref": "rBillingBucket"},
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
               "Sid": "Stmt1335892150622",
               "Effect": "Allow",
               "Principal": {
@@ -115,7 +124,7 @@
                 "s3:GetBucketAcl",
                 "s3:GetBucketPolicy"
               ],
-              "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::div${Division}-${AWS::AccountId}-billing" }
+              "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::div${pDivision}-${AWS::AccountId}-billing" }
             },
             {
               "Sid": "Stmt1335892526596",
@@ -124,42 +133,179 @@
                 "AWS": { "Fn::Sub": [ "arn:${AWS::Partition}:iam::${BILLINGID}:root", {"BILLINGID": {"Fn::FindInMap": ["RegionMap", {"Ref": "AWS::Region"}, "BILLINGID"]}}] }
               },
               "Action": "s3:PutObject",
-              "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::div${Division}-${AWS::AccountId}-billing/*" }
+              "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::div${pDivision}-${AWS::AccountId}-billing/*" }
             }
           ]
         }
       }
     },
-	  "BillingBucketLogging": {
+    "rCAPTrailBucket": {
       "Type": "AWS::S3::Bucket",
-	    "Condition": "PAYER",
+      "Condition": "cSC2S",
+      "DeletionPolicy": "Retain",
       "Properties": {
-        "BucketName": { "Fn::Sub": "div${Division}-${AWS::AccountId}-billing-logging" },
-        "AccessControl": "LogDeliveryWrite"
+        "BucketName": { "Fn::Sub": "${pProjectName}-${pEnvType}-${AWS::AccountId}-captrail" },
+          "LoggingConfiguration": {
+            "DestinationBucketName": { "Ref": "rAccessLoggingBucket" },
+            "LogFilePrefix": "captrail"
+        }
       }
     },
-    "CloudTrail": {
-      "Type": "AWS::CloudTrail::Trail",
-      "DeletionPolicy": "Delete",
+    "rCAPTrailBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Condition": "cSC2S",
       "Properties": {
+        "Bucket": {"Ref": "rCAPTrailBucket"},
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "Stmt1335892526596",
+                  "Effect": "Allow",
+                  "Principal": {
+                    "AWS": { "Fn::Sub": ["arn:${AWS::Partition}:iam::${CAPID}:root", { "CAPID": {"Fn::FindInMap": ["RegionMap", {"Ref": "AWS::Region"}, "CAPID"]}}] }
+                  },
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:GetObject",
+                    "s3:DeleteObject"
+                  ],
+                  "Resource": [
+                    {"Fn::Sub": "arn:${AWS::Partition}:s3:::${pProjectName}-${pEnvType}-${AWS::AccountId}-captrail"},
+                    {"Fn::Sub": "arn:${AWS::Partition}:s3:::${pProjectName}-${pEnvType}-${AWS::AccountId}-captrail/*"}
+                  ]
+            }
+          ]
+        }
+      }
+    },
+    "rAccessLoggingBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Condition": "cLOCAL",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": { "Fn::Sub": "${pProjectName}-${pEnvType}-${AWS::AccountId}-bucket-access-logging" },
+          "AccessControl": "LogDeliveryWrite"
+      }
+    },
+    "rAccessLoggingBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+          "Bucket": {
+              "Ref": "rAccessLoggingBucket"
+          },
+          "PolicyDocument": {
+              "Statement": [
+                  {
+                      "Sid": "Enforce HTTPS Connections",
+                      "Action": "s3:*",
+                      "Effect": "Deny",
+                      "Principal": "*",
+                      "Resource": {
+                          "Fn::Sub": "arn:${AWS::Partition}:s3:::${rAccessLoggingBucket}/*"
+                      },
+                      "Condition": {
+                          "Bool": {
+                              "aws:SecureTransport": false
+                          }
+                      }
+                  },
+                  {
+                      "Sid": "Restrict Delete* Actions",
+                      "Action": "s3:Delete*",
+                      "Effect": "Deny",
+                      "Principal": "*",
+                      "Resource": {
+                          "Fn::Sub": "arn:${AWS::Partition}:s3:::${rAccessLoggingBucket}/*"
+                      }
+                  }
+              ]
+          }
+      }
+    },
+    "rCloudTrail": {
+      "Type": "AWS::CloudTrail::Trail",
+      "Properties": {
+        "TrailName": { "Fn::Sub": "${pProjectName}-${pEnvType}-trail" },
         "IncludeGlobalServiceEvents": true,
-        "IsMultiRegionTrail": true,
         "IsLogging": true,
-        "S3BucketName": {
-          "Ref": "CloudTrailBucket"
-        },
+        "IsMultiRegionTrail": true,
+        "EnableLogFileValidation": true,
         "EventSelectors": [
           {
             "DataResources": [
               {
                 "Type": "AWS::S3::Object",
-                "Values": [{ "Fn::Sub": "arn:${AWS::Partition}:s3:::" }]
+                "Values": [{"Fn::Sub": "arn:${AWS::Partition}:s3:::"}]
               }
             ]
           }
+        ],
+        "S3BucketName": {
+          "Fn::If": [ "cLOCAL", { "Ref": "rCloudTrailBucket" }, { "Ref": "pMasterCloudTrailBucket" } ]
+        },
+        "CloudWatchLogsLogGroupArn": { "Fn::GetAtt": [ "rCloudWatchLogsGroup", "Arn" ] },
+        "CloudWatchLogsRoleArn": { "Fn::GetAtt": [ "rCloudTrailToCloudWatchLogsRole", "Arn" ] }
+      }
+    },
+    "rCloudWatchLogsGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "CloudTrailLogGroup",
+        "RetentionInDays": 90
+      }
+    },
+    "rCloudTrailToCloudWatchLogsRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "CloudTrailRole",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudtrail.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "CloudTrailPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "CloudTrailCreateLogStream",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream"
+                  ],
+                  "Resource": [ {"Fn::GetAtt": [ "rCloudWatchLogsGroup", "Arn" ] } ]
+                },
+                {
+                  "Sid": "CloudTrailPutLogEvents",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [ {"Fn::GetAtt": [ "rCloudWatchLogsGroup", "Arn" ] } ]
+                }
+              ]
+            }
+          }
         ]
-      },
-      "DependsOn": "CloudTrailBucketPolicy"
+      }
+    }
+  },
+  "Outputs": {
+    "oBillingBucketName": {
+      "Condition": "cPAYER",
+      "Description": "Billing S3 Bucket Name",
+      "Value": { "Ref": "rBillingBucket" }
     }
   }
 }
