@@ -1,0 +1,19 @@
+{
+  "Resource": [
+    {
+      "Fn::Sub": "arn:${AWS::Partition}:s3:::${pCloudTrailBucketName}/AWSLogs/336078658527/*"
+    },
+    {
+      "Fn::Sub": "arn:${AWS::Partition}:s3:::${pCloudTrailBucketName}/AWSLogs/338287200330/*"
+    },
+    {
+      "Fn::Sub": "arn:${AWS::Partition}:s3:::${pCloudTrailBucketName}/AWSLogs/123456789012/*"
+    },
+    {
+      "Fn::Sub": "arn:${AWS::Partition}:s3:::${pCloudTrailBucketName}/AWSLogs/098765432123/*"
+    },
+    {
+      "Fn::Sub": "arn:${AWS::Partition}:s3:::${pCloudTrailBucketName}/AWSLogs/875632852389/*"
+    }
+  ]
+}

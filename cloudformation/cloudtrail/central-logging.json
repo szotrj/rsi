@@ -1,0 +1,391 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Sets up central logging and access logging buckets for enterprise accounts",
+  "Parameters":{
+      "pCloudTrailBucketName": {
+          "Description": "Name of the central CloudTrail bucket",
+          "Type": "String",
+          "Default": ""
+      },
+      "pConfigSupported": {
+          "Description": "Support Config logs?",
+          "Type": "String",
+          "Default": "No",
+          "AllowedValues": ["Yes", "No"]
+      },
+      "pConfigBucketName": {
+          "Description": "Name of the central Config bucket",
+          "Type": "String",
+          "Default": ""
+      },
+      "pCloudFormationBucketName": {
+          "Description": "Name of the bucket for CloudFormation templates",
+          "Type": "String",
+          "Default": ""
+      }
+  },
+  "Conditions": {
+      "cConfigSupported": { "Fn::Equals": [ {"Ref": "pConfigSupported"}, "Yes"]},
+      "cGOVCLOUD": {"Fn::Or" : [{"Fn::Equals": [{"Ref": "AWS::Region"}, "us-gov-west-1"]}, {"Fn::Equals": [{"Ref": "AWS::Region"}, "us-gov-east-1"]}]},
+      "cSC2S": {"Fn::Equals": [{"Ref": "AWS::Region"}, "us-isob-east-1"]},
+      "cC2S": {"Fn::Equals": [{"Ref": "AWS::Region"}, "us-iso-east-1"]}
+  },
+  "Resources": {
+      "rS3BucketKey": {
+          "Type": "AWS::KMS::Key",
+          "Properties": {
+              "Description": "CMK for S3 bucket encryption",
+              "Enabled": true,
+              "EnableKeyRotation": true,
+              "KeyPolicy": {
+                  "Version": "2012-10-17",
+                  "Id": "s3key",
+                  "Statement": [
+                      {
+                          "Sid": "Allow administration of the key",
+                          "Effect": "Allow",
+                          "Principal": { 
+                              "AWS": [
+                                  { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" },
+                                  { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" },
+                                  { "Fn::If": [ "cGOVCLOUD", { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:user/Administrator" }, { "Ref": "AWS::NoValue" } ] }
+                              ]
+                          },
+                          "Action": [
+                              "kms:Create*",
+                              "kms:Describe*",
+                              "kms:Enable*",
+                              "kms:List*",
+                              "kms:Put*",
+                              "kms:Update*",
+                              "kms:Revoke*",
+                              "kms:Disable*",
+                              "kms:Get*",
+                              "kms:Delete*",
+                              "kms:ScheduleKeyDeletion",
+                              "kms:CancelKeyDeletion"
+                          ],
+                          "Resource": "*"
+                      },
+                      {
+                          "Sid": "Allow use of the key",
+                          "Effect": "Allow",
+                          "Principal": { 
+                              "AWS": [
+                                  { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" }
+                              ],
+                              "Service": "cloudtrail.amazonaws.com"
+                          },
+                          "Action": [
+                              "kms:Encrypt",
+                              "kms:Decrypt",
+                              "kms:ReEncrypt*",
+                              "kms:GenerateDataKey*",
+                              "kms:DescribeKey"
+                          ], 
+                          "Resource": "*"
+                      }
+                  ]
+              }
+          }
+      },
+      "rS3KeyAlias": {
+          "Type": "AWS::KMS::Alias",
+          "Properties": {
+              "AliasName": "alias/S3MasterKey",
+              "TargetKeyId": { "Ref":"rS3BucketKey" }
+          }
+      },
+      "rCloudTrailBucket": {
+          "Type": "AWS::S3::Bucket",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+              "BucketName": { "Ref": "pCloudTrailBucketName" },
+              "AccessControl": "Private",
+              "LoggingConfiguration": {
+                  "DestinationBucketName": { "Ref": "rAccessLogsBucket"},
+                  "LogFilePrefix": "cloudtrail/"
+              },
+              "LifecycleConfiguration": {
+                  "Rules": [
+                      {
+                          "Id": "Transition90days",
+                          "Status": "Enabled",
+                          "Transition": {
+                              "TransitionInDays": 90,
+                              "StorageClass": "STANDARD_IA"
+                          }
+                      },
+                      {
+                          "Id": "Transition365days",
+                          "Status": "Enabled",
+                          "Transition": {
+                              "TransitionInDays": 365,
+                              "StorageClass": "GLACIER"
+                          }
+                      },
+                      {
+                          "Id": "Expire7yrs",
+                          "Status": "Enabled",
+                          "ExpirationInDays": 2555
+                      }
+                  ]
+              },
+              "VersioningConfiguration": {
+                  "Status": "Enabled"
+              },
+              "BucketEncryption": {
+                  "ServerSideEncryptionConfiguration": [
+                      {
+                          "ServerSideEncryptionByDefault": {
+                              "KMSMasterKeyID": { "Ref": "rS3BucketKey" },
+                              "SSEAlgorithm": "aws:kms"
+                          }
+                      }
+                  ]
+              }
+          }
+      },
+      "rCloudTrailBucketPolicy": {
+          "Type": "AWS::S3::BucketPolicy",
+          "Properties": {
+              "Bucket": {"Ref": "rCloudTrailBucket"},
+              "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                      {
+                          "Sid": "AWSAclCheck",
+                          "Effect": "Allow",
+                          "Principal": {
+                              "Service": [ "cloudtrail.amazonaws.com" ]
+                          },
+                          "Action": "s3:GetBucketAcl",
+                          "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${pCloudTrailBucketName}" }
+                      },
+                      {
+                          "Sid": "AWSCloudTrailWrite",
+                          "Effect": "Allow",
+                          "Principal": {
+                              "Service": [ "cloudtrail.amazonaws.com" ]
+                          },
+                          "Action": "s3:PutObject", 
+                          "Fn::Transform" : {
+                              "Name" : "AWS::Include",
+                              "Parameters" : {
+                                  "Location" : { "Fn::Sub": "s3://${pCloudFormationBucketName}/logs-bucket-policy-snippet.json" }
+                              }
+                          },
+                          "Condition": {
+                              "StringEquals": {
+                                  "s3:x-amz-acl": "bucket-owner-full-control"
+                              }
+                          }
+                      },
+                      {
+                          "Sid": "EnforceHTTPS",
+                          "Action": "s3:*",
+                          "Effect": "Deny",
+                          "Principal": "*",
+                          "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${pCloudTrailBucketName}/*" },
+                          "Condition": {
+                              "Bool": {
+                                  "aws:SecureTransport": false
+                              }
+                          }
+                      },
+                      {
+                          "Sid": "RestrictDeleteActions",
+                          "Action": "s3:Delete*",
+                          "Effect": "Deny",
+                          "Principal": "*",
+                          "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${pCloudTrailBucketName}/*" }
+                      }
+                  ]
+              }
+          }
+      },
+      "rConfigBucket": {
+          "Type": "AWS::S3::Bucket",
+          "Condition": "cConfigSupported",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+              "BucketName": { "Ref": "pConfigBucketName" },
+              "LoggingConfiguration": {
+                  "DestinationBucketName": { "Ref": "rAccessLogsBucket"},
+                  "LogFilePrefix": "config/"
+              },
+              "LifecycleConfiguration": {
+                  "Rules": [
+                      {
+                          "Id": "Transition90days",
+                          "Status": "Enabled",
+                          "Transition": {
+                              "TransitionInDays": 90,
+                              "StorageClass": "STANDARD_IA"
+                          }
+                      },
+                      {
+                          "Id": "Transition365days",
+                          "Status": "Enabled",
+                          "Transition": {
+                              "TransitionInDays": 365,
+                              "StorageClass": "GLACIER"
+                          }
+                      },
+                      {
+                          "Id": "Expire7yrs",
+                          "Status": "Enabled",
+                          "ExpirationInDays": 2555
+                      }
+                  ]
+              },
+              "VersioningConfiguration": {
+                  "Status": "Enabled"
+              },
+              "BucketEncryption": {
+                  "ServerSideEncryptionConfiguration": [
+                      {
+                          "ServerSideEncryptionByDefault": {
+                              "KMSMasterKeyID": { "Ref": "rS3BucketKey" },
+                              "SSEAlgorithm": "aws:kms"
+                          }
+                      }
+                  ]
+              }
+          }
+      },
+      "rConfigBucketPolicy": {
+          "Type": "AWS::S3::BucketPolicy",
+          "Condition": "cConfigSupported",
+          "Properties": {
+              "Bucket": {"Ref": "rConfigBucket"},
+              "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                      {
+                          "Sid": "AWSAclCheck",
+                          "Effect": "Allow",
+                          "Principal": {
+                              "Service": [ "config.amazonaws.com" ]
+                          },
+                          "Action": "s3:GetBucketAcl",
+                          "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${pConfigBucketName}" }
+                      },
+                      {
+                          "Sid": "AWSCloudTrailWrite",
+                          "Effect": "Allow",
+                          "Principal": {
+                              "Service": [ "config.amazonaws.com" ]
+                          },
+                          "Action": "s3:PutObject",
+                          "Resource": [
+                              { "Fn::Sub": "arn:${AWS::Partition}:s3:::${pConfigBucketName}/AWSLogs/*" }
+                          ],
+                          "Condition": {
+                              "StringEquals": {
+                                  "s3:x-amz-acl": "bucket-owner-full-control"
+                              }
+                          }
+                      },
+                      {
+                          "Sid": "EnforceHTTPS",
+                          "Action": "s3:*",
+                          "Effect": "Deny",
+                          "Principal": "*",
+                          "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${pConfigBucketName}/*" },
+                          "Condition": {
+                              "Bool": {
+                                  "aws:SecureTransport": false
+                              }
+                          }
+                      },
+                      {
+                          "Sid": "RestrictDeleteActions",
+                          "Action": "s3:Delete*",
+                          "Effect": "Deny",
+                          "Principal": "*",
+                          "Resource": { "Fn::Sub": "arn:${AWS::Partition}:s3:::${pConfigBucketName}/*" }
+                      }
+                  ]
+              }
+          }
+      },
+      "rAccessLogsBucket": {
+          "Type": "AWS::S3::Bucket",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+              "BucketName": { "Fn::Sub": "${AWS::AccountId}-bucket-access-logs" },
+              "AccessControl": "LogDeliveryWrite",
+              "LifecycleConfiguration": {
+                  "Rules": [
+                      {
+                          "Id": "Transition90days",
+                          "Status": "Enabled",
+                          "Transition": {
+                              "TransitionInDays": 90,
+                              "StorageClass": "STANDARD_IA"
+                          }
+                      },
+                      {
+                          "Id": "Transition365days",
+                          "Status": "Enabled",
+                          "Transition": {
+                              "TransitionInDays": 365,
+                              "StorageClass": "GLACIER"
+                          }
+                      },
+                      {
+                          "Id": "Expire7yrs",
+                          "Status": "Enabled",
+                          "ExpirationInDays": 2555
+                      }
+                  ]
+              },
+              "VersioningConfiguration": {
+                  "Status": "Enabled"
+              }
+          }
+      },
+      "rAccessLogsBucketPolicy": {
+          "Type": "AWS::S3::BucketPolicy",
+          "Properties": {
+              "Bucket": {
+                  "Ref": "rAccessLogsBucket"
+              },
+              "PolicyDocument": {
+                  "Statement": [
+                      {
+                          "Sid": "Enforce HTTPS Connections",
+                          "Action": "s3:*",
+                          "Effect": "Deny",
+                          "Principal": "*",
+                          "Resource": {
+                              "Fn::Sub": "arn:${AWS::Partition}:s3:::${rAccessLogsBucket}/*"
+                          },
+                          "Condition": {
+                              "Bool": {
+                                  "aws:SecureTransport": false
+                              }
+                          }
+                      },
+                      {
+                          "Sid": "Restrict Delete* Actions",
+                          "Action": "s3:Delete*",
+                          "Effect": "Deny",
+                          "Principal": "*",
+                          "Resource": {
+                              "Fn::Sub": "arn:${AWS::Partition}:s3:::${rAccessLogsBucket}/*"
+                          }
+                      }
+                  ]
+              }
+          }
+      }
+  },
+  "Outputs": {
+      "oCloudTrailBucketName": {
+          "Description": "CloudTrail S3 Bucket Name",
+          "Value": { "Ref": "rCloudTrailBucket" }
+      }
+  }
+}
