@@ -34,25 +34,34 @@
             "Description": "Master CloudTrail Bucket Name",
             "Type": "String",
             "Default": "master-cloudtrail"
+        },
+        "pCustomerEmail": {
+            "Description": "Customer Email for Budget Alerts",
+            "Type": "String",
+            "Default": ""
         }
     },
     "Mappings": {
         "mRegionMap": {
             "us-east-1": {
                 "BILLINGID": "386209384616",
-                "BILLINGUSER": "root"
+                "BILLINGUSER": "root",
+                "KMSACCOUNTID": ""
             },
             "us-east-2": {
                 "BILLINGID": "386209384616",
-                "BILLINGUSER": "root"
+                "BILLINGUSER": "root",
+                "KMSACCOUNTID": ""
             },
             "us-west-1": {
                 "BILLINGID": "386209384616",
-                "BILLINGUSER": "root"
+                "BILLINGUSER": "root",
+                "KMSACCOUNTID": ""
             },
             "us-west-2": {
                 "BILLINGID": "386209384616",
-                "BILLINGUSER": "root"
+                "BILLINGUSER": "root",
+                "KMSACCOUNTID": ""
             },
             "us-gov-west-1": {
                 "BILLINGID": "",
@@ -61,10 +70,12 @@
             "us-isob-east-1": {
                 "BILLINGID": "",
                 "BILLINGUSER": "user/IAM-Programmatic-Access-Prod",
-                "CAPID": ""
+                "CAPID": "",
+                "KMSACCOUNTID": ""
             },
             "us-iso-east-1": {
-                "BILLINGID": ""
+                "BILLINGID": "",
+                "KMSACCOUNTID": ""
             }
         }
     },
@@ -77,6 +88,12 @@
                 "payer"
             ]
         },
+        "cCOMM": { "Fn::Or": [
+            { "Fn::Equals": [{ "Ref": "AWS::Region" }, "us-east-1" ]},
+            { "Fn::Equals": [{ "Ref": "AWS::Region" }, "us-east-2" ]},
+            { "Fn::Equals": [{ "Ref": "AWS::Region" }, "us-west-1" ]},
+            { "Fn::Equals": [{ "Ref": "AWS::Region" }, "us-west-2" ]}
+        ]},
         "cSC2S": {
             "Fn::Equals": [
                 {
@@ -152,7 +169,7 @@
                             },
                             "Action": "s3:PutObject",
                             "Resource": {
-                                "Fn::Sub": "arn:${AWS::Partition}:s3:::${pProjectName}-${pEnvType}-${AWS::AccountId}-cloudtrail/AWSLogs*"
+                                "Fn::Sub": "arn:${AWS::Partition}:s3:::${pProjectName}-${pEnvType}-${AWS::AccountId}-cloudtrail/AWSLogs/${AWS::AccountId}/*"
                             },
                             "Condition": {
                                 "StringEquals": {
@@ -319,7 +336,7 @@
             "DeletionPolicy": "Retain",
             "Properties": {
                 "BucketName": {
-                    "Fn::Sub": "${pProjectName}-${pEnvType}-${AWS::AccountId}-bucket-access-logging"
+                    "Fn::Sub": "${pProjectName}-${pEnvType}-${AWS::AccountId}-bucket-access-logs"
                 },
                 "AccessControl": "LogDeliveryWrite"
             }
@@ -393,7 +410,8 @@
                         "Arn"
                     ]
                 }
-            }
+            },
+            "DependsOn": "rCloudTrailBucketPolicy"
         },
         "rCloudWatchLogsGroup": {
             "Type": "AWS::Logs::LogGroup",
@@ -457,6 +475,48 @@
                                 }
                             ]
                         }
+                    }
+                ]
+            }
+        },
+        "rBudget":  {
+            "Type": "AWS::Budgets::Budget",
+            "Condition": "cCOMM",
+            "Properties": {
+                "Budget": {
+                    "BudgetLimit": {
+                        "Amount": 1000,
+                        "Unit": "USD"
+                    },
+                    "TimeUnit": "MONTHLY",
+                    "BudgetType": "COST"            
+                },
+                "NotificationsWithSubscribers": [
+                    {
+                        "Notification": {
+                            "NotificationType": "ACTUAL",
+                            "ComparisonOperator": "GREATER_THAN",
+                                "Threshold": 99
+                        },
+                        "Subscribers": [
+                            {
+                                "SubscriptionType": "EMAIL",
+                                "Address": { "Ref": "pCustomerEmail" }
+                            }
+                        ]
+                    },
+                    {
+                        "Notification": {
+                            "NotificationType": "ACTUAL",
+                            "ComparisonOperator": "GREATER_THAN",
+                            "Threshold": 80
+                        },
+                        "Subscribers": [
+                            {
+                                "SubscriptionType": "EMAIL",
+                                "Address": { "Ref": "pCustomerEmail" }
+                            }
+                        ]
                     }
                 ]
             }
