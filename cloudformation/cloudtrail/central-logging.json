@@ -31,15 +31,15 @@
       "cC2S": {"Fn::Equals": [{"Ref": "AWS::Region"}, "us-iso-east-1"]}
   },
   "Resources": {
-      "rS3BucketKey": {
+      "rMasterKey": {
           "Type": "AWS::KMS::Key",
           "Properties": {
-              "Description": "CMK for S3 bucket encryption",
+              "Description": "CMK for encryption",
               "Enabled": true,
               "EnableKeyRotation": true,
               "KeyPolicy": {
                   "Version": "2012-10-17",
-                  "Id": "s3key",
+                  "Id": "masterkey",
                   "Statement": [
                       {
                           "Sid": "Allow administration of the key",
@@ -74,7 +74,10 @@
                               "AWS": [
                                   { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" }
                               ],
-                              "Service": "cloudtrail.amazonaws.com"
+                              "Service": [
+                                  "cloudtrail.amazonaws.com",
+                                  "sqs.amazonaws.com"
+                              ]
                           },
                           "Action": [
                               "kms:Encrypt",
@@ -89,12 +92,31 @@
               }
           }
       },
-      "rS3KeyAlias": {
+      "rMasterKeyAlias": {
           "Type": "AWS::KMS::Alias",
           "Properties": {
-              "AliasName": "alias/S3MasterKey",
-              "TargetKeyId": { "Ref":"rS3BucketKey" }
+              "AliasName": "alias/MasterKey",
+              "TargetKeyId": { "Ref":"rMasterKey" }
           }
+      },
+      "rSplunkQueue": {
+          "Type" : "AWS::SQS::Queue",
+          "Properties" : {
+              "KmsMasterKeyId": { "Ref": "rMasterKeyAlias" },
+              "QueueName": "SplunkQueue",
+              "RedrivePolicy": {
+                "deadLetterTargetArn": {"Fn::GetAtt" : [ "rDeadLetterQueue" , "Arn" ]},
+                "maxReceiveCount": 5
+              },
+              "VisibilityTimeout": 300
+          }
+      },
+      "rDeadLetterQueue" : {
+        "Type" : "AWS::SQS::Queue",
+        "Properties" : {
+            "KmsMasterKeyId": { "Ref": "rMasterKeyAlias" },
+            "QueueName": "SplunkDeadLetterQueue"
+        }
       },
       "rCloudTrailBucket": {
           "Type": "AWS::S3::Bucket",
@@ -138,7 +160,7 @@
                   "ServerSideEncryptionConfiguration": [
                       {
                           "ServerSideEncryptionByDefault": {
-                              "KMSMasterKeyID": { "Ref": "rS3BucketKey" },
+                              "KMSMasterKeyID": { "Ref": "rMasterKey" },
                               "SSEAlgorithm": "aws:kms"
                           }
                       }
@@ -246,7 +268,7 @@
                   "ServerSideEncryptionConfiguration": [
                       {
                           "ServerSideEncryptionByDefault": {
-                              "KMSMasterKeyID": { "Ref": "rS3BucketKey" },
+                              "KMSMasterKeyID": { "Ref": "rMasterKey" },
                               "SSEAlgorithm": "aws:kms"
                           }
                       }
