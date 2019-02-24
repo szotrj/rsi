@@ -72,11 +72,13 @@
                           "Effect": "Allow",
                           "Principal": { 
                               "AWS": [
+                                  { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:root" },
                                   { "Fn::Sub": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/ADMINISTRATOR" }
                               ],
                               "Service": [
                                   "cloudtrail.amazonaws.com",
-                                  "sqs.amazonaws.com"
+                                  "sqs.amazonaws.com",
+                                  "sns.amazonaws.com"
                               ]
                           },
                           "Action": [
@@ -110,6 +112,30 @@
               },
               "VisibilityTimeout": 300
           }
+      },
+      "rSplunkQueuePolicy": {
+        "Type": "AWS::SQS::QueuePolicy",
+        "Properties": {        
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Id": "QueuePolicy",
+            "Statement": [
+              {
+                "Sid": "Allow-SendMessage-To-Queue-From-SNS-Topic",
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": [ "sqs:SendMessage" ],
+                "Resource": { "Fn::GetAtt": [ "rSplunkQueue", "Arn" ] },
+                "Condition": {
+                  "ArnLike": {
+                    "aws:SourceArn": { "Fn::Sub": "arn:${AWS::Partition}:sns:*:*:topic/cloudtrail" }
+                  }
+                }
+              }
+            ]
+          },
+          "Queues": [{"Ref":"rSplunkQueue"}]
+        }
       },
       "rDeadLetterQueue" : {
         "Type" : "AWS::SQS::Queue",
@@ -408,6 +434,10 @@
       "oCloudTrailBucketName": {
           "Description": "CloudTrail S3 Bucket Name",
           "Value": { "Ref": "rCloudTrailBucket" }
+      },
+      "oSplunkSQSQueueARN": {
+          "Description": "ARN of the Splunk SQS Queue",
+          "Value": { "Fn::GetAtt": [ "rSplunkQueue", "Arn" ] }
       }
   }
 }

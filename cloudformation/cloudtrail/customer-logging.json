@@ -33,49 +33,43 @@
         "pMasterCloudTrailBucket": {
             "Description": "Master CloudTrail Bucket Name",
             "Type": "String",
-            "Default": "master-cloudtrail"
+            "Default": "esoc-master-cloudtrail"
         },
-        "pCustomerEmail": {
-            "Description": "Customer Email for Budget Alerts",
+        "pSNSTopicName": {
+            "Description": "Name of the SNS topic for CloudTrail",
             "Type": "String",
-            "Default": ""
+            "Default": "cloudtrail"
         }
     },
     "Mappings": {
         "mRegionMap": {
             "us-east-1": {
                 "BILLINGID": "386209384616",
-                "BILLINGUSER": "root",
-                "KMSACCOUNTID": ""
+                "BILLINGUSER": "root"
             },
             "us-east-2": {
                 "BILLINGID": "386209384616",
-                "BILLINGUSER": "root",
-                "KMSACCOUNTID": ""
+                "BILLINGUSER": "root"
             },
             "us-west-1": {
                 "BILLINGID": "386209384616",
-                "BILLINGUSER": "root",
-                "KMSACCOUNTID": ""
+                "BILLINGUSER": "root"
             },
             "us-west-2": {
                 "BILLINGID": "386209384616",
-                "BILLINGUSER": "root",
-                "KMSACCOUNTID": ""
+                "BILLINGUSER": "root"
             },
             "us-gov-west-1": {
                 "BILLINGID": "",
-                "KMSACCOUNTID": ""
+                "CENTRALACCOUNTID": ""
             },
             "us-isob-east-1": {
-                "BILLINGID": "",
+                "BILLINGID": "812475063476",
                 "BILLINGUSER": "user/IAM-Programmatic-Access-Prod",
-                "CAPID": "",
-                "KMSACCOUNTID": ""
+                "CAPID": ""
             },
             "us-iso-east-1": {
-                "BILLINGID": "",
-                "KMSACCOUNTID": ""
+                "BILLINGID": ""
             }
         }
     },
@@ -88,12 +82,6 @@
                 "payer"
             ]
         },
-        "cCOMM": { "Fn::Or": [
-            { "Fn::Equals": [{ "Ref": "AWS::Region" }, "us-east-1" ]},
-            { "Fn::Equals": [{ "Ref": "AWS::Region" }, "us-east-2" ]},
-            { "Fn::Equals": [{ "Ref": "AWS::Region" }, "us-west-1" ]},
-            { "Fn::Equals": [{ "Ref": "AWS::Region" }, "us-west-2" ]}
-        ]},
         "cSC2S": {
             "Fn::Equals": [
                 {
@@ -117,9 +105,79 @@
                 },
                 "local"
             ]
+        },
+        "cCENTRAL": {
+            "Fn::Equals": [
+                {
+                    "Ref": "pDestination"
+                },
+                "central"
+            ]
         }
     },
     "Resources": {
+        "rCloudTrailSNSTopic": {
+            "Type" : "AWS::SNS::Topic",
+            "Condition": "cCENTRAL",
+            "Properties" : {
+                "DisplayName" : "CLOUDTRAIL",
+                "TopicName" : { "Ref": "pSNSTopicName" }
+            }
+        },
+        "rCloudTrailSnsTopicPolicy": {
+            "Type": "AWS::SNS::TopicPolicy",
+            "Condition": "cCENTRAL",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Id": "CloudTrailSnsTopicPubSubPolicy",
+                    "Statement": [
+                        {
+                            "Sid": "SNSRead",
+                            "Effect": "Allow",
+                            "Principal": "*",
+                            "Action": [
+                                "sns:GetTopicAttributes",
+                                "sns:ListSubscriptionsByTopic"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "SNSSubscribe",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::FindInMap": [
+                                        "mRegionMap",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "CENTRALACCOUNTID"
+                                    ]
+                                },
+                                "Service": "sqs.amazonaws.com"
+                            },
+                            "Action": [
+                                "sns:Subscribe"
+                            ],
+                            "Resource": { "Fn::Sub": "arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${pSNSTopicName}" }
+                        },
+                        {
+                            "Sid": "CloudTrailPublish",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "cloudtrail.amazonaws.com"
+                            },
+                            "Action": [
+                                "sns:Publish"
+                            ],
+                            "Resource": { "Fn::Sub": "arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${pSNSTopicName}" }
+                        }
+                    ]
+                },
+                "Topics": [{ "Ref": "rCloudTrailSNSTopic" }]
+            }
+        },
         "rCloudTrailBucket": {
             "Type": "AWS::S3::Bucket",
             "Condition": "cLOCAL",
@@ -133,6 +191,11 @@
                         "Ref": "rLoggingBucket"
                     },
                     "LogFilePrefix": "cloudtrail"
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "7f6f5066-cfff-4596-bac3-d8e88183e9d5"
                 }
             }
         },
@@ -169,7 +232,7 @@
                             },
                             "Action": "s3:PutObject",
                             "Resource": {
-                                "Fn::Sub": "arn:${AWS::Partition}:s3:::${pProjectName}-${pEnvType}-${AWS::AccountId}-cloudtrail/AWSLogs/${AWS::AccountId}/*"
+                                "Fn::Sub": "arn:${AWS::Partition}:s3:::${pProjectName}-${pEnvType}-${AWS::AccountId}-cloudtrail/AWSLogs/*"
                             },
                             "Condition": {
                                 "StringEquals": {
@@ -178,6 +241,11 @@
                             }
                         }
                     ]
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "4fdde080-c105-4e78-869f-4a46325360eb"
                 }
             }
         },
@@ -194,6 +262,11 @@
                         "Ref": "rLoggingBucket"
                     },
                     "LogFilePrefix": "billing"
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "515cf499-4a28-4fe2-a43e-8a28f1455377"
                 }
             }
         },
@@ -264,6 +337,11 @@
                         }
                     ]
                 }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "2e51e31d-2d89-4c68-aae0-b97eab5606fc"
+                }
             }
         },
         "rCAPTrailBucket": {
@@ -279,6 +357,11 @@
                         "Ref": "rLoggingBucket"
                     },
                     "LogFilePrefix": "captrail"
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "28ae6e36-b13d-4067-aa15-399d14ce5a5b"
                 }
             }
         },
@@ -329,6 +412,11 @@
                         }
                     ]
                 }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "21f886ae-52ce-495f-b554-84b7e5984cea"
+                }
             }
         },
         "rLoggingBucket": {
@@ -336,9 +424,14 @@
             "DeletionPolicy": "Retain",
             "Properties": {
                 "BucketName": {
-                    "Fn::Sub": "${pProjectName}-${pEnvType}-${AWS::AccountId}-bucket-access-logs"
+                    "Fn::Sub": "${pProjectName}-${pEnvType}-${AWS::AccountId}-bucket-access-logging"
                 },
                 "AccessControl": "LogDeliveryWrite"
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "1e880ebf-46db-43a3-b44f-e88e119cfacd"
+                }
             }
         },
         "rCloudTrail": {
@@ -351,6 +444,7 @@
                 "IsLogging": true,
                 "IsMultiRegionTrail": true,
                 "EnableLogFileValidation": true,
+                "SnsTopicName": { "Fn::If": [ "cCENTRAL", { "Fn::GetAtt": [ "rCloudTrailSNSTopic", "TopicName" ] }, { "Ref": "AWS::NoValue"} ] },
                 "EventSelectors": [
                     {
                         "DataResources": [
@@ -383,17 +477,18 @@
                           "Ref": "AWS::NoValue"
                       },
                       {
-                          "Fn::Sub": [ "arn:${AWS::Partition}:kms:${AWS::Region}:${KMSACCOUNTID}:alias/S3MasterKey", {
-                            "KMSACCOUNTID": {
-                                "Fn::FindInMap": [
-                                    "mRegionMap",
-                                    {
-                                        "Ref": "AWS::Region"
-                                    },
-                                    "KMSACCOUNTID"
-                                ]
+                          "Fn::Sub": [ "arn:${AWS::Partition}:kms:${AWS::Region}:${CENTRALACCOUNTID}:alias/MasterKey", 
+                            {
+                                "CENTRALACCOUNTID": {
+                                    "Fn::FindInMap": [
+                                        "mRegionMap",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                        "CENTRALACCOUNTID"
+                                    ]
+                                }
                             }
-                          }
                           ]
                       }
                   ]
@@ -411,13 +506,23 @@
                     ]
                 }
             },
-            "DependsOn": "rCloudTrailBucketPolicy"
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "00423070-969b-4dd5-b948-6a7854c94346"
+                }
+            },
+            "DependsOn": "rCloudTrailSnsTopicPolicy"
         },
         "rCloudWatchLogsGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
                 "LogGroupName": "CloudTrailLogGroup",
                 "RetentionInDays": 90
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "743dd2d5-9a3f-44b0-857b-fc66a6f2d32f"
+                }
             }
         },
         "rCloudTrailToCloudWatchLogsRole": {
@@ -450,7 +555,7 @@
                                         "logs:CreateLogStream"
                                     ],
                                     "Resource": [
-                                        {
+                                        { 
                                             "Fn::GetAtt": [
                                                 "rCloudWatchLogsGroup",
                                                 "Arn"
@@ -465,7 +570,7 @@
                                         "logs:PutLogEvents"
                                     ],
                                     "Resource": [
-                                        {
+                                        { 
                                             "Fn::GetAtt": [
                                                 "rCloudWatchLogsGroup",
                                                 "Arn"
@@ -477,48 +582,11 @@
                         }
                     }
                 ]
-            }
-        },
-        "rBudget":  {
-            "Type": "AWS::Budgets::Budget",
-            "Condition": "cCOMM",
-            "Properties": {
-                "Budget": {
-                    "BudgetLimit": {
-                        "Amount": 1000,
-                        "Unit": "USD"
-                    },
-                    "TimeUnit": "MONTHLY",
-                    "BudgetType": "COST"            
-                },
-                "NotificationsWithSubscribers": [
-                    {
-                        "Notification": {
-                            "NotificationType": "ACTUAL",
-                            "ComparisonOperator": "GREATER_THAN",
-                                "Threshold": 99
-                        },
-                        "Subscribers": [
-                            {
-                                "SubscriptionType": "EMAIL",
-                                "Address": { "Ref": "pCustomerEmail" }
-                            }
-                        ]
-                    },
-                    {
-                        "Notification": {
-                            "NotificationType": "ACTUAL",
-                            "ComparisonOperator": "GREATER_THAN",
-                            "Threshold": 80
-                        },
-                        "Subscribers": [
-                            {
-                                "SubscriptionType": "EMAIL",
-                                "Address": { "Ref": "pCustomerEmail" }
-                            }
-                        ]
-                    }
-                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "4b51f93b-3821-4ea9-85ae-5f6c4a072484"
+                }
             }
         }
     },
@@ -528,6 +596,13 @@
             "Description": "Billing S3 Bucket Name",
             "Value": {
                 "Ref": "rBillingBucket"
+            }
+        },
+        "oCloudTrailSNSTopicARN": {
+            "Condition": "cCENTRAL",
+            "Description": "ARN of the SNS topic for CloudTrail",
+            "Value": {
+                "Ref": "rCloudTrailSNSTopic"
             }
         }
     }
