@@ -1,12 +1,19 @@
-# rsi
+# rsindustries.io
 
-This is my GitHub for [RSI](https://rsindustries.io)
+[RSI](https://rsindustries.io)
 
-### Environment
+## Environment
 
 * [AWS](https://aws.amazon.com) - Cloud Service Provider
 * [RSI](https://rsindustries.io) - 100% serverless business website
-* [VSCode](https://code.visualstudio.com/) - IDE used for development
+
+### AWS Services in Use
+* Amazon Route 53  
+* Amazon CloudFront  
+* Amazon S3  
+* Amazon API Gateway  
+* AWS Lambda  
+* Amazon SES
 
 ### Authors
 
